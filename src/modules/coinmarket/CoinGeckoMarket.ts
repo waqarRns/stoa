@@ -14,6 +14,8 @@
 
 import { logger, Logger } from '../common/Logger';
 import { IMarketCap } from "../../Types";
+import { Operation } from '../common/LogOperation'
+import  Stoa  from "../../Stoa";
 
 export interface CoinMarket {
     /**
@@ -48,7 +50,8 @@ export class CoinGeckoMarket implements CoinMarket {
                     resolve(true);
                 }
             }).catch((err: any) => {
-                logger.error(`Stoa is unable to ping gecko coin market`);
+                logger.error(`Stoa is unable to ping gecko coin market`,
+                 { operation: Operation.connection, height: Stoa.height.toString(), success: false });
                 resolve(false)
             })
         })
@@ -71,11 +74,13 @@ export class CoinGeckoMarket implements CoinMarket {
                     change_24h: marketCap.bosagora.usd_24h_change,
                     last_updated_at: marketCap.bosagora.last_updated_at
                 }
-                logger.info(`CoinMarket: Data Fetch Completed at ${marketCap.bosagora.last_updated_at}`);
+                logger.info(`CoinMarket: Data Fetch Completed at ${marketCap.bosagora.last_updated_at}`,
+                { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: true });
                 return resolve(coinMarketStat);
             }
             else {
-                logger.info(`Fail to fetch CoinMarket data`);
+                logger.error(`Fail to fetch CoinMarket data`,
+                 { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: false });
                 reject(`Fail to fetch CoinMarket data`);
             }
         });
@@ -100,11 +105,13 @@ export class CoinGeckoMarket implements CoinMarket {
                         vol_24h: marketCapChartRange.total_volumes[index][1],
                     });
                 });
-                logger.info(`CoinMarket: Data recover Completed: length(${coinMarketStat.length})`);
+                logger.info(`CoinMarket: Data recover Completed: length(${coinMarketStat.length})`,
+                { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: true });
                 return resolve(coinMarketStat);
             }
             else {
-                logger.info(`Fail to fetch CoinMarket data`);
+                logger.error(`Fail to fetch CoinMarket data`, 
+                { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: false });
                 reject(`Fail to fetch CoinMarket data`);
             }
         });

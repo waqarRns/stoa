@@ -17,6 +17,7 @@ import Stoa from "../../Stoa";
 import { IMarketCap } from "../../Types";
 import JSBI from 'jsbi';
 import { Time } from '../common/Time';
+import { Operation } from '../common/LogOperation'
 
 export class CoinMarketService {
     /**
@@ -82,7 +83,8 @@ export class CoinMarketService {
                         return resolve(true)
                     }
                     else {
-                        this.coinMarketClient.fetch().then(async (data: IMarketCap) => {
+                        let height = await stoaInstance.ledger_storage.getBlockHeight()
+                        this.coinMarketClient.fetch(height).then(async (data: IMarketCap) => {
                             await stoaInstance.putCoinMarketStats(data);
                             this.status = false;
                             return resolve(true);
@@ -108,7 +110,8 @@ export class CoinMarketService {
                 let from = await JSBI.subtract(JSBI.BigInt(to.seconds), JSBI.BigInt(60 * 60 * 24));
                 let dt = new Date(to.seconds * 1000);
                 let df = new Date(Number(from.toString()) * 1000)
-                logger.info(`Recovering 24 hour coinmarket cap from: ${df} to: ${dt}`)
+                logger.info(`Recovering 24 hour coinmarket cap from: ${df} to: ${dt}`,
+                { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: true })
                 let marketCap = await this.coinMarketClient.recover(Number(from.toString()), to.seconds);
                 marketCap.forEach(async (element: IMarketCap) => {
                     let time = await Time.msToTime(element.last_updated_at);
@@ -118,7 +121,8 @@ export class CoinMarketService {
                 resolve(true)
             }
             catch (err) {
-                logger.error(`Failed to 24-hour coin market data recovery: ${err}`);
+                logger.error(`Failed to 24-hour coin market data recovery: ${err}`, 
+                { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: false });
                 reject(`Failed to 24-hour coin market data recovery`);
             }
         });
@@ -140,7 +144,8 @@ export class CoinMarketService {
                     let to = await Time.msToTime(Date.now());
                     let dt = new Date(to.seconds * 1000);
                     let df = new Date(last_updated_at * 1000);
-                    logger.info(`Recovering coinmarket cap from: ${df} to ${dt}`)
+                    logger.info(`Recovering coinmarket cap from: ${df} to ${dt}`,
+                    { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: true })
                     let marketCap = await this.coinMarketClient.recover(last_updated_at, to.seconds);
                     marketCap.forEach(async (element: IMarketCap) => {
                         let time = await Time.msToTime(element.last_updated_at);
@@ -151,7 +156,8 @@ export class CoinMarketService {
                 }
             }
             catch (err) {
-                logger.error(`Failed to coin market data recovery: ${err}`)
+                logger.error(`Failed to coin market data recovery: ${err}`,
+                 { operation: Operation.connection, height: Stoa.height.toString(), success: false })
                 reject(`Failed to coin market data recovery`)
             }
         });
