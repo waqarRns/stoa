@@ -95,8 +95,9 @@ export class Logger
             format: combine(
                 timestamp(),
                 json(),
-                metadata({ fillExcept: ['message', 'level', 'timestamp', 'label'] }),
-            )
+                metadata({ fillExcept: ['message', 'level', 'timestamp', 'label'] }),                
+            ),
+            options : {useUnifiedTopology: true}
         };
         return new MongoDB(options)
     }
@@ -107,7 +108,7 @@ export class Logger
      */
     public static async BuildDbConnection(mongodb_url: string) {
 
-        const client = new MongoClient(mongodb_url);
+        const client = new MongoClient(mongodb_url, {useUnifiedTopology: true});
         try {
             await client.connect();
             return true
