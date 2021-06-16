@@ -1337,19 +1337,14 @@ class Stoa extends WebService
      */
     private getBlockHeight (req: express.Request, res: express.Response)
     {
+        logger.http(`GET /block_height`);
 
         this.ledger_storage.getBlockHeight()
             .then((row: Height | null) => {
                 if (row == null)
-                {
                     res.status(400).send(`The block height not found.`);
-                }
                 else
-                {
                     res.status(200).send(JSON.stringify(row));
-                    logger.http(`GET /block_height`,{ endpoint: '/block_height', accessStatus: "granted",RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStates:res.statusCode == 401?'Denied':'Granted', bytesTransmitted:res.getHeader('content-length')});
-                }
-
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err,
