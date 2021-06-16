@@ -46,6 +46,7 @@
     "source-map-support": "^0.5.19",
     "urijs": "^1.19.6",
     "winston": "^3.3.3",
+    "winston-levelonly": "^1.0.3",
     "winston-mongodb": "^5.0.7"
   },
   "devDependencies": {

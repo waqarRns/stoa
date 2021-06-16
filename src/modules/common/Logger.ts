@@ -87,10 +87,17 @@ export class Logger
     * @return A transport that can be passed to `logger.add`
     */
     public static defaultDatabaseTransport(mongodb_url: string) {
+        const myLevel:config.AbstractConfigSetLevels=
+        {
+            http: 0,
+            info: 1,
+            error: 2,
+            debug: 3
+        }
         const options = {
-            level: 'http',
+            level: 'info',
             db: mongodb_url,
-            collection: 'stoa_logs',
+            collection: 'operation_logs',
             tryReconnect: true,
             format: combine(
                 timestamp(),
@@ -99,9 +106,27 @@ export class Logger
             ),
             options : {useUnifiedTopology: true}
         };
-        return new MongoDB(options)
+        const access_options = {
+            level: 'http',
+            db: mongodb_url,
+            collection: 'access_logs',
+            tryReconnect: true,
+            format: combine(
+                timestamp(),
+                json(),
+                metadata({ fillExcept: ['message', 'level', 'timestamp', 'label'] }),                
+            ),
+            options : {useUnifiedTopology: true}
+        };
+       return winston.createLogger({
+            levels: myLevel,
+            transports: [
+                new MongoDB(options),
+                new MongoDB(access_options),
+            ]
+          });
     }
-    /**
+    /**access_logs
      * Method build connectivity with logging database.
      * @param mongodb_url 
      * @returns Ture if successfull, and return false if connection issue occers.

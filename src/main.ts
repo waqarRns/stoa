@@ -34,7 +34,7 @@ switch (process.env.NODE_ENV) {
         {
            Logger.BuildDbConnection(config.logging.mongodb_url).then((connection)=>{
                  if(connection)
-                 logger.add(Logger.defaultDatabaseTransport(config.logging.mongodb_url));  
+                     logger.add(Logger.defaultDatabaseTransport(config.logging.mongodb_url));  
            })
         }  
 }
