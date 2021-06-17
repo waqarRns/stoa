@@ -9,7 +9,6 @@ import { CoinGeckoMarket } from './modules/coinmarket/CoinGeckoMarket'
 import { CoinGeckoClient } from "coingecko-api-v3";
 import { Storages } from './modules/storage/Storages';
 import { Operation } from './modules/common/LogOperation';
-
 // Create with the arguments and read from file
 let config = Config.createWithArgument();
 
@@ -42,6 +41,7 @@ logger.transports.forEach((tp) => { tp.level = config.logging.level });
 
 logger.info(`Agora endpoint: ${config.server.agora_endpoint.toString()}`, { operation: Operation.connection, height: "", success: true });
 logger.info(`mysql database host: ${config.database.database}`, { operation: Operation.connection, height: "", success: true});
+logger.info(`MongoDB connection url: ${config.logging.mongodb_url}`);
 
 const stoa: Stoa = new Stoa(config.database,
     config.server.agora_endpoint,

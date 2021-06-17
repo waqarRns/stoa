@@ -18,6 +18,7 @@ import path from 'path';
 import winston, { config } from 'winston';
 import { MongoDB } from 'winston-mongodb';
 import { MongoClient } from 'mongodb';
+import mongoose from 'mongoose'
 const { combine, timestamp, label, printf, metadata, json } = winston.format;
 const logFormat = printf(({ level, message, label, timestamp }) => {
     return `[${label}] ${timestamp} ${level} ${message}`;
@@ -131,11 +132,10 @@ export class Logger
      * @param mongodb_url 
      * @returns Ture if successfull, and return false if connection issue occers.
      */
-    public static async BuildDbConnection(mongodb_url: string) {
-
-        const client = new MongoClient(mongodb_url, {useUnifiedTopology: true});
+    public static async BuildDbConnection(mongodb_url: string) 
+    {
         try {
-            await client.connect();
+            await mongoose.connect(mongodb_url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
             return true
         } catch (err) {
             logger.error(`stoa is unable to build connection for db log. Error:`, err)

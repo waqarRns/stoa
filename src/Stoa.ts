@@ -20,6 +20,9 @@ import cors from 'cors';
 import express from 'express';
 import JSBI from 'jsbi';
 import { URL } from 'url';
+import { isBlackList } from './modules/middleware/blackListMiddleware';
+import blacklistModel from './modules/common/blacklistModel';
+
 
 class Stoa extends WebService
 {
@@ -132,9 +135,9 @@ class Stoa extends WebService
         // parse application/json
         this.app.use(bodyParser.json({ limit: '1mb' }))
         this.app.use(cors(cors_options));
-
+        
         // Prepare routes
-        this.app.get("/block_height", this.getBlockHeight.bind(this));
+        this.app.get("/block_height", isBlackList, this.getBlockHeight.bind(this));
         this.app.get("/validators", this.getValidators.bind(this));
         this.app.get("/validator/:address", this.getValidator.bind(this));
         this.app.get("/transaction/pending/:hash", this.getTransactionPending.bind(this));
@@ -1347,9 +1350,9 @@ class Stoa extends WebService
                     res.status(400).send(`The block height not found.`);
                 }
                 else
-                {         
+                {    
                     res.status(200).send(JSON.stringify(row));
-                    let resTime :any = new Date().getTime() - time;         
+                    let resTime :any = new Date().getTime() - time;    
                     logger.http(`GET /block_height`,{ endpoint: '/block_height',RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStates:res.statusCode == 401?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
                 }
 
