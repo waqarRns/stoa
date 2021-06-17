@@ -87,7 +87,7 @@ export class Logger
     * @return A transport that can be passed to `logger.add`
     */
     public static defaultDatabaseTransport(mongodb_url: string) {
-        const myLevel:config.AbstractConfigSetLevels=
+        const customLevel:config.AbstractConfigSetLevels =
         {
             http: 0,
             info: 1,
@@ -119,7 +119,7 @@ export class Logger
             options : {useUnifiedTopology: true}
         };
        return winston.createLogger({
-            levels: myLevel,
+            levels: customLevel,
             transports: [
                 new MongoDB(options),
                 new MongoDB(access_options),
