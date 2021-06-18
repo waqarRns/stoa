@@ -38,6 +38,9 @@ import { BOASodium } from 'boa-sodium-ts';
 import { IMarketCap } from '../src/Types';
 import { CoinMarketService } from '../src/modules/service/CoinMarketService';
 import { CoinGeckoMarket } from '../src/modules/coinmarket/CoinGeckoMarket';
+import User from '../src/modules/models/userModel'
+import { connect, clearDatabase, closeDatabase } from './db-handler'
+
 
 describe('Test of Stoa API Server', () => {
     let host: string = 'http://localhost';
@@ -598,3 +601,52 @@ describe('Test of Stoa API Server', () => {
         assert.deepStrictEqual(response.data, expected)
     });
 });
+describe('Test Admin API',()=>{
+    let host: string = 'http://localhost';
+    let port: string = '3837';
+
+    let client = new TestClient();
+    before(async () => await connect());
+    afterEach(async () => await clearDatabase());
+    after(async () => await closeDatabase());
+
+    it('Test register API',(done)=>{
+        let uri = URI(host)
+        .port(port)
+        .pathname("register-user")
+        let user = {
+            name:'test',
+            email:'test@test.com',
+            password:'12345'
+        }
+        let url = uri.toString();
+        
+        client.post(url, user).then((res)=>{
+        assert.strictEqual(res.status, 200);
+        assert.strictEqual(res.data.email, user.email);
+    });
+        done();
+    });
+    it('Test sign In API',(done)=>{
+        let uri = URI(host)
+        .port(port)
+        .pathname("signin")
+        User.create({
+            name:'test',
+            email:'test1@test.com',
+            password:'123456'
+        })
+        let user = {
+            name:'test',
+            email:'test1@test.com',
+            password:'123456'
+        }
+        let url = uri.toString();
+        
+        client.post(url, user).then((res)=>{
+        assert.strictEqual(res.status, 200);
+    });
+        done();
+    });
+
+})

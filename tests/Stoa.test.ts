@@ -1109,4 +1109,3 @@ describe ('Test of the path /merkle_path', () =>
         assert.deepStrictEqual(response.data, expected);
     })
 });
-

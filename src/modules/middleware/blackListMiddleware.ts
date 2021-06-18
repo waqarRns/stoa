@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction} from 'express';
-import blacklistModel from '../common/blacklistModel';
+import blacklistModel from '../models/blacklistModel';
 import { logger } from '../common/Logger';
 
 /**

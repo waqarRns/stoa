@@ -17,7 +17,6 @@
 import path from 'path';
 import winston, { config } from 'winston';
 import { MongoDB } from 'winston-mongodb';
-import { MongoClient } from 'mongodb';
 import mongoose from 'mongoose'
 const { combine, timestamp, label, printf, metadata, json } = winston.format;
 const logFormat = printf(({ level, message, label, timestamp }) => {
