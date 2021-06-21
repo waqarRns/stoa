@@ -3,7 +3,7 @@ import { cors_options } from './cors';
 import { IDatabaseConfig } from './modules/common/Config';
 import { LedgerStorage } from './modules/storage/LedgerStorage';
 import { CoinMarketService } from './modules/service/CoinMarketService';
-import { logger } from './modules/common/Logger';
+import { logger, Logger} from './modules/common/Logger';
 import { Height, PreImageInfo, Hash, hash, Block, Utils,
     Endian, Transaction, hashFull } from 'boa-sdk-ts';
 import { WebService } from './modules/service/WebService';
@@ -163,6 +163,8 @@ class Stoa extends WebService
         this.app.post("/transaction_received", this.putTransaction.bind(this));
         this.app.post("/register-user", this.registerUser.bind(this));
         this.app.post("/signin", this.signIn.bind(this));
+        this.app.get("/operationlogs", this.getOperationLogs.bind(this));
+        this.app.get("/accesslogs", this.getAccessLogs.bind(this));
 
         let height: Height = new Height("0");
 
@@ -1536,6 +1538,52 @@ class Stoa extends WebService
                 logger.error('Something went wrong');       
             }
         };
+    /**
+    * get all operation logs
+    */
+    public async getOperationLogs(req: express.Request, res: express.Response): Promise<any>
+    {
+        let time: any = new Date().getTime();
+        let pagination: IPagination = await this.paginate(req, res);
+        try 
+        {   
+         let db = Logger.dbInstance
+         db =  db.connection.db         
+         db.collection('operation_logs').find().skip((pagination.page-1)*pagination.page).limit(pagination.pageSize).toArray((er:any, result:any) => {
+            res.status(200).json(result);
+            let resTime:any = new Date().getTime() - time;
+            logger.http(`GET /operationlogs`,{ endpoint: `/operationlogs`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStates:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+         });
+        } 
+        catch (error) 
+        {
+            console.log(error)
+            logger.error('Something went wrong');       
+        }
+    };
+    /**
+    * get all access logs
+    */
+    public async getAccessLogs(req: express.Request, res: express.Response): Promise<any>
+    {
+        let time: any = new Date().getTime();
+        let pagination: IPagination = await this.paginate(req, res);
+        try 
+        {   
+            let db = Logger.dbInstance
+            db =  db.connection.db         
+            db.collection('access_logs').find().skip((pagination.page-1)*pagination.page).limit(pagination.pageSize).toArray((er:any, result:any) => {
+                res.status(200).json(result);
+                let resTime:any = new Date().getTime() - time;
+                logger.http(`GET /accesslogs`,{ endpoint: `/accesslogs`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStates:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+            });
+            } 
+        catch (error) 
+        {
+            console.log(error)
+            logger.error('Something went wrong');       
+        }
+    };
     /**
       * Get Coin Market Cap for BOA.
       * @param req

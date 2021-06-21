@@ -26,6 +26,7 @@ const logFormat = printf(({ level, message, label, timestamp }) => {
 
 export class Logger
 {
+    public static dbInstance: any
     /**
      * Create the 'default' file transport to be added to a logger
      *
@@ -134,8 +135,8 @@ export class Logger
     public static async BuildDbConnection(mongodb_url: string) 
     {
         try {
-            await mongoose.connect(mongodb_url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
-            return true
+            Logger.dbInstance = await mongoose.connect(mongodb_url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });
+           return true;  
         } catch (err) {
             logger.error(`stoa is unable to build connection for db log. Error:`, err)
             return false;
