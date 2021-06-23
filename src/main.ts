@@ -3,6 +3,7 @@ import { Config } from './modules/common/Config';
 import { logger, Logger } from './modules/common/Logger';
 import { BOASodium } from "boa-sodium-ts";
 import { SodiumHelper } from "boa-sdk-ts";
+import sgMail from '@sendgrid/mail'
 import Stoa from './Stoa';
 import { CoinMarketService } from './modules/service/CoinMarketService';
 import { CoinGeckoMarket } from './modules/coinmarket/CoinGeckoMarket'
@@ -26,6 +27,7 @@ switch (process.env.NODE_ENV) {
     case "production":
     default:
         // Read the config file and potentially use both
+        sgMail.setApiKey(config.logging.sendgrid_api_key)
         logger.add(Logger.defaultFileTransport(config.logging.folder));
         if (config.logging.console)
             logger.add(Logger.defaultConsoleTransport());

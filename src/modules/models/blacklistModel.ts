@@ -4,7 +4,8 @@ import mongoose from 'mongoose';
 */
 interface IBlacklist 
 {
-  ipAddress:string
+  ipAddress:string,
+  description: string
 }
 /**
 * Mongoose schema for blacklist Ip
@@ -12,9 +13,16 @@ interface IBlacklist
 const blacklistSchema = new mongoose.Schema(
     {
         ipAddress: {
+            type: String,
+            required: true
+        },
+        description: {
             type: String
         }
+    },
+    {
+        timestamps: true,
     }
 )
-const Blacklist = mongoose.model<mongoose.Document>('Blacklist', blacklistSchema);
+const Blacklist = mongoose.model<IBlacklist & mongoose.Document>('Blacklist', blacklistSchema);
 export default Blacklist;

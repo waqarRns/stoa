@@ -308,6 +308,11 @@ export class LoggingConfig implements ILoggingConfig
     public mongodb_url: string;
 
     /**
+     * Sendgrid API key
+     */
+    sendgrid_api_key: string;  
+
+    /**
      * Constructor
      */
     constructor ()
@@ -318,6 +323,7 @@ export class LoggingConfig implements ILoggingConfig
         this.console = defaults.console;
         this.database = defaults.database;
         this.mongodb_url = defaults.mongodb_url
+        this.sendgrid_api_key = defaults.sendgrid_api_key
     }
 
     /**
@@ -347,7 +353,8 @@ export class LoggingConfig implements ILoggingConfig
             level: "info",
             console: false,
             database: false,
-            mongodb_url: 'mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&ssl=false'
+            mongodb_url: 'mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&ssl=false',
+            sendgrid_api_key: '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'
         }
     }
 }
@@ -475,6 +482,11 @@ export interface ILoggingConfig
      * url of mongodb to store logs
      */
     mongodb_url: string;
+
+    /**
+     * Sendgrid API key
+     */
+    sendgrid_api_key: string;    
 }
 
 /**
