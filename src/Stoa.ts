@@ -1509,7 +1509,7 @@ class Stoa extends WebService
         } 
         catch (error) 
         {
-            logger.error('Something went wrong');       
+            logger.error('Error', error);       
         }
     };
     /**
@@ -1544,7 +1544,7 @@ class Stoa extends WebService
             } 
             catch (error) 
             {
-                logger.error('Something went wrong');       
+                logger.error('Error', error);       
             }
         };
     /**
@@ -1566,8 +1566,7 @@ class Stoa extends WebService
         } 
         catch (error) 
         {
-            console.log(error)
-            logger.error('Something went wrong');       
+            logger.error('Error', error);       
         }
     };
     /**
@@ -1589,8 +1588,7 @@ class Stoa extends WebService
         } 
         catch (error) 
         {
-            console.log(error)
-            logger.error('Something went wrong');       
+            logger.error('Error', error);       
         }
     };
     /**
@@ -1611,8 +1609,8 @@ class Stoa extends WebService
         } 
         catch (error) 
         {
-            console.log(error)
-            logger.error('Something went wrong');       
+            logger.error('Error', error);       
+
         }
     };
     /**
@@ -1623,7 +1621,7 @@ class Stoa extends WebService
         let time: any = new Date().getTime();
         let email = req.body.email;
         try 
-        {   
+        {  
             const msg = {
                 to: email, // Change to your recipient
                 from: 'ahmed@rnssol.com', // Change to your verified sender
@@ -1634,7 +1632,7 @@ class Stoa extends WebService
             sgMail
                 .send(msg)
                 .catch((error) => {
-                 console.error(error)
+                 logger.error('Something went wrong, unable to send mail. Error :', error)
                 })
                 res.status(200).json({ message:'Email sent successfully'})
                 let resTime:any = new Date().getTime() - time;
@@ -1642,8 +1640,7 @@ class Stoa extends WebService
         } 
         catch (error) 
         {
-            console.log(error)
-            logger.error('Something went wrong');       
+            logger.error('Error', error);       
         }
     };
     /**
@@ -1655,7 +1652,7 @@ class Stoa extends WebService
         try 
         {   
             const { blackListIp, description } = req.body;
-            const existBlacklist = await Blacklist.findOne({ipAddress: blackListIp });
+            const existBlacklist = await Blacklist.exists({ ipAddress: blackListIp });
             if(existBlacklist) 
             {
                 res.status(409).send('Ip already exist');
@@ -1678,8 +1675,7 @@ class Stoa extends WebService
         } 
         catch (error) 
         {
-            console.log(error)
-            logger.error('Something went wrong');       
+            logger.error('Error', error);       
         }
     };
     /**
@@ -1687,26 +1683,26 @@ class Stoa extends WebService
     */
     public async deleteBlacklist(req: express.Request, res: express.Response): Promise<any>
     {
-        let time: any = new Date().getTime();          
+        let time: any = new Date().getTime();        
+        let deletedIps:any = [];  
         try 
-        {   const blacklistIps = req.body   
-            let len = req.body.length
+        {
              for(let i = 0; i < req.body.length; i++)
              {
                 const { blacklistIp } = req.body[i]
                 
-                await Blacklist.findOneAndRemove({ipAddress: blacklistIp})
-               
-             }
-            res.status(200).json({ message:'Ip delete successfully'});
+                await Blacklist.findOneAndRemove({ipAddress: blacklistIp}).then((res)=>{
+                    deletedIps.push(res?.ipAddress)
+                })
+            }
+            res.status(200).json({ message:'Ip delete successfully', deletedIps});
             let resTime:any = new Date().getTime() - time;
             logger.http(`DELETE /deleteblacklist`,{ endpoint: `/deleteblacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
 
         } 
         catch (error) 
         {
-            console.log(error)
-            logger.error('Something went wrong');       
+            logger.error('Error', error);       
         }
     };
     /**
@@ -1755,8 +1751,7 @@ class Stoa extends WebService
             } 
             catch (error) 
             {
-                console.log(error)
-                logger.error('Something went wrong');       
+                logger.error('Error', error);          
             }
         };
     /**
@@ -1804,8 +1799,7 @@ class Stoa extends WebService
         } 
         catch (error) 
         {
-            console.log(error)
-            logger.error('Something went wrong');       
+            logger.error('Error', error);       
         }
     };
     /**

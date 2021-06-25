@@ -17,7 +17,8 @@ const blacklistSchema = new mongoose.Schema(
             required: true
         },
         description: {
-            type: String
+            type: String,
+            default:null
         }
     },
     {

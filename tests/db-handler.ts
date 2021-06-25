@@ -11,10 +11,11 @@ export const connect =async()=>{
     const mongooseOpts = {
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        useCreateIndex: true
+        useCreateIndex: true,
+        useFindAndModify: false,
     };
 
-    await mongoose.connect(uri, mongooseOpts);
+   return await mongoose.connect(uri, mongooseOpts);
 }
 export const closeDatabase =async()=>{
     await mongoose.connection.dropDatabase();

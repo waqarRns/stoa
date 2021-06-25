@@ -39,7 +39,9 @@ import { IMarketCap } from '../src/Types';
 import { CoinMarketService } from '../src/modules/service/CoinMarketService';
 import { CoinGeckoMarket } from '../src/modules/coinmarket/CoinGeckoMarket';
 import User from '../src/modules/models/userModel'
+import Blacklist from '../src/modules/models/blacklistModel'
 import { connect, clearDatabase, closeDatabase } from './db-handler'
+
 
 
 describe('Test of Stoa API Server', () => {
@@ -601,19 +603,64 @@ describe('Test of Stoa API Server', () => {
         assert.deepStrictEqual(response.data, expected)
     });
 });
-describe('Test Admin API',()=>{
+
+describe('Test Admin API',async ()=>{
     let host: string = 'http://localhost';
     let port: string = '3837';
-
+    let stoa_server: TestStoa;
+    let agora_server: TestAgora;
     let client = new TestClient();
-    before(async () => await connect());
-    afterEach(async () => await clearDatabase());
-    after(async () => await closeDatabase());
+    let testDBConfig: IDatabaseConfig;
+    let gecko_server: TestGeckoServer;
+    let gecko_market: CoinGeckoMarket;
+    let coinMarketService: CoinMarketService;
+    var conn:any;
+    before('Wait for the package libsodium to finish loading', async () => {
+        SodiumHelper.assign(new BOASodium());
+        await SodiumHelper.init();
+    });
 
-    it('Test register API',(done)=>{
+    before('Start a fake Agora', () => {
+        return new Promise<void>((resolve, reject) => {
+            agora_server = new TestAgora("2826", sample_data, resolve);
+        });
+    });
+    before('Start a fake TestCoinGeckoServer', () => {
+        return new Promise<void>(async (resolve, reject) => {
+            gecko_server = new TestGeckoServer("7876", market_cap_sample_data, market_cap_history_sample_data, resolve);
+            gecko_market = new CoinGeckoMarket(gecko_server);
+        });
+    });
+    before('Start a fake TestCoinGecko', () => {
+        coinMarketService = new CoinMarketService(gecko_market);
+    });
+    before('Create TestStoa', async () => {
+        testDBConfig = await MockDBConfig();
+        stoa_server = new TestStoa(testDBConfig, new URL("http://127.0.0.1:2826"), port, coinMarketService);
+        await stoa_server.createStorage();
+    });
+
+    before('Start TestStoa', async () => {
+        await stoa_server.start();
+    });
+
+    after('Stop Stoa and Agora server instances', async () => {
+        await stoa_server.ledger_storage.dropTestDB(testDBConfig.database);
+        await stoa_server.stop();
+        await gecko_server.stop();
+        await agora_server.stop();
+    });
+    // before(async () => await connect());
+    // afterEach(async () => await clearDatabase());
+     after(async () => await closeDatabase());
+    it('Test register API',async()=>{
+        
+        //  conn = await connect();
+        await connect();
+        
         let uri = URI(host)
         .port(port)
-        .pathname("register-user")
+        .directory("/register-user")
         let user = {
             name:'test',
             email:'test@test.com',
@@ -621,32 +668,127 @@ describe('Test Admin API',()=>{
         }
         let url = uri.toString();
         
-        client.post(url, user).then((res)=>{
+        let res = await client.post(url, user);        
         assert.strictEqual(res.status, 200);
         assert.strictEqual(res.data.email, user.email);
     });
-        done();
-    });
-    it('Test sign In API',(done)=>{
+    it('Test sign In API',async()=>{
         let uri = URI(host)
         .port(port)
-        .pathname("signin")
-        User.create({
-            name:'test',
-            email:'test1@test.com',
-            password:'123456'
-        })
+        .directory("/signin")
+
         let user = {
-            name:'test',
-            email:'test1@test.com',
-            password:'123456'
+            email:'test@test.com',
+            password:'12345'
         }
         let url = uri.toString();
-        
-        client.post(url, user).then((res)=>{
+        let res =  await client.post(url, user)
+
         assert.strictEqual(res.status, 200);
+        assert.strictEqual(res.data.message, 'Login successfully');
+        
+  
     });
-        done();
+    
+    it('Test add blacklist ip API',async ()=>{
+        let uri = URI(host)
+        .port(port)
+        .directory("/addblacklist")
+        let expected = {
+            ipAddress:'192.168.0.0',
+            description:'Too many requests'
+        }
+        let data = {
+            blackListIp:'192.168.0.0',
+            description:'Too many requests'
+        }
+        
+        let url = uri.toString();
+        client.post(url, data).then((result)=>{
+            assert.strictEqual(result.status, 200);
+            assert.strictEqual(result.data, expected);
+            
+        })
     });
 
-})
+    it('Test delete blacklist ip API', async()=>{
+ 
+        let uri = URI(host)
+        .port(port)
+        .directory("/deleteblacklist")
+        Blacklist.create({
+            ipAddress:'192.168.0.0',
+            description:'Too many requestes'
+        })
+        let blacklistIp = { data: [ '192.168.0.0' ]  }
+        let url = uri.toString();
+        
+        let res = await client.delete(url, blacklistIp)
+
+        assert.strictEqual(res.status, 200);
+        assert.strictEqual(res.data.message, 'Ip delete successfully');
+
+    });
+    // it('Test operation logs API', async()=>{
+    // //    let conn = await connect();
+    //    let uri = URI(host)
+    //    .port(port)
+    //    .directory("/deleteblacklist")
+    //    Blacklist.create({
+    //        ipAddress:'192.168.0.0',
+    //        description:'Too many requestes'
+    //    })
+    //    let blacklistIp = { data: [ '192.168.0.0' ]  }
+    //    let url = uri.toString();
+       
+    //     await client.delete(url, blacklistIp)
+    //     delay(2000)
+    //     uri = URI(host)
+    //     .port(port)
+    //     .directory("/operationlogs")
+
+    //      url = uri.toString();
+    //      let col = conn.connection.db
+    //     //  console.log(col.collection('operation_logs').find());
+         
+    //     col.collection('operation_logs').find().toArray((er:any, result:any) => {
+    //         console.log(result);
+    //         assert.strictEqual(1, 1);
+    //     })
+    //     let res = await client.get(url).then((result)=>{
+    //         console.log(result);
+            
+    //     })
+    // //    console.log(res);
+
+    // // assert.strictEqual(res.status, 200);
+
+
+    // });
+    // it('Test access logs API', async()=>{
+
+    //     let uri = URI(host)
+    //     .port(port)
+    //     .directory("/accesslogs")
+
+    //     let url = uri.toString();
+        
+    //     let res = await client.get(url)
+    //     console.log(res);
+
+    //     assert.strictEqual(res.status, 200);
+    // });
+    // it('Test send mail API', async()=>{
+
+    //     let uri = URI(host)
+    //     .port(port)
+    //     .directory("/forgetpassword")
+    //     let data = {email:'test@test.com'}
+    //     let url = uri.toString();
+        
+    //     let res = await client.post(url,data)
+
+    //     assert.strictEqual(res.status, 200);
+    //     assert.strictEqual(res.data.message, 'Email sent successfully');
+    // });
+});
