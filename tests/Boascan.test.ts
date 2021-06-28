@@ -36,11 +36,10 @@ import { IDatabaseConfig } from '../src/modules/common/Config';
 import { MockDBConfig } from "./TestConfig"
 import { BOASodium } from 'boa-sodium-ts';
 import { IMarketCap } from '../src/Types';
+import { Config } from '../src/modules/common/Config';
+import { Logger } from '../src/modules/common/Logger';
 import { CoinMarketService } from '../src/modules/service/CoinMarketService';
 import { CoinGeckoMarket } from '../src/modules/coinmarket/CoinGeckoMarket';
-import User from '../src/modules/models/userModel'
-import Blacklist from '../src/modules/models/blacklistModel'
-import { connect, clearDatabase, closeDatabase } from './db-handler'
 
 
 
@@ -614,7 +613,8 @@ describe('Test Admin API',async ()=>{
     let gecko_server: TestGeckoServer;
     let gecko_market: CoinGeckoMarket;
     let coinMarketService: CoinMarketService;
-    var conn:any;
+    let config: Config = new Config();
+    var conn:any ;
     before('Wait for the package libsodium to finish loading', async () => {
         SodiumHelper.assign(new BOASodium());
         await SodiumHelper.init();
@@ -650,14 +650,10 @@ describe('Test Admin API',async ()=>{
         await gecko_server.stop();
         await agora_server.stop();
     });
-    // before(async () => await connect());
-    // afterEach(async () => await clearDatabase());
-     after(async () => await closeDatabase());
+     before(async () => {
+          conn = await Logger.BuildDbConnection(config.logging.mongodb_url)
+        });
     it('Test register API',async()=>{
-        
-        //  conn = await connect();
-        await connect();
-        
         let uri = URI(host)
         .port(port)
         .directory("/register-user")
@@ -686,8 +682,6 @@ describe('Test Admin API',async ()=>{
 
         assert.strictEqual(res.status, 200);
         assert.strictEqual(res.data.message, 'Login successfully');
-        
-  
     });
     
     it('Test add blacklist ip API',async ()=>{
@@ -704,11 +698,11 @@ describe('Test Admin API',async ()=>{
         }
         
         let url = uri.toString();
-        client.post(url, data).then((result)=>{
-            assert.strictEqual(result.status, 200);
-            assert.strictEqual(result.data, expected);
+        let res = await client.post(url, data)
             
-        })
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.data.blackListIp, expected.ipAddress);
+            
     });
 
     it('Test delete blacklist ip API', async()=>{
@@ -716,68 +710,100 @@ describe('Test Admin API',async ()=>{
         let uri = URI(host)
         .port(port)
         .directory("/deleteblacklist")
-        Blacklist.create({
-            ipAddress:'192.168.0.0',
-            description:'Too many requestes'
-        })
-        let blacklistIp = { data: [ '192.168.0.0' ]  }
+
+        let data:any = {
+            ips:[ { blacklistIp:'192.168.0.0' } ]
+        }
         let url = uri.toString();
         
-        let res = await client.delete(url, blacklistIp)
+        let res = await client.post(url, data)
 
         assert.strictEqual(res.status, 200);
-        assert.strictEqual(res.data.message, 'Ip delete successfully');
+        console.log(data.ips[0].blacklistIp);
+        
+        assert.strictEqual(res.data.deletedIps[0], data.ips[0].blacklistIp);
 
     });
-    // it('Test operation logs API', async()=>{
-    // //    let conn = await connect();
-    //    let uri = URI(host)
-    //    .port(port)
-    //    .directory("/deleteblacklist")
-    //    Blacklist.create({
-    //        ipAddress:'192.168.0.0',
-    //        description:'Too many requestes'
-    //    })
-    //    let blacklistIp = { data: [ '192.168.0.0' ]  }
-    //    let url = uri.toString();
-       
-    //     await client.delete(url, blacklistIp)
-    //     delay(2000)
-    //     uri = URI(host)
-    //     .port(port)
-    //     .directory("/operationlogs")
+    it('Test operation logs API', async()=>{
+       let uri = URI(host)
+        .port(port)
+        .directory("/operationlogs")
 
-    //      url = uri.toString();
-    //      let col = conn.connection.db
-    //     //  console.log(col.collection('operation_logs').find());
+        let url = uri.toString();
+        //  let col = conn.connection.db
+        // //  console.log(col.collection('operation_logs').find());
          
-    //     col.collection('operation_logs').find().toArray((er:any, result:any) => {
-    //         console.log(result);
-    //         assert.strictEqual(1, 1);
-    //     })
-    //     let res = await client.get(url).then((result)=>{
-    //         console.log(result);
-            
-    //     })
-    // //    console.log(res);
+        // col.collection('access_logs').find().toArray((er:any, result:any) => {
+        //     console.log(result);
+        //     assert.strictEqual(1, 1);
+        // })
+        let res = await client.get(url);
 
-    // // assert.strictEqual(res.status, 200);
+     assert.strictEqual(res.status, 200);
+    });
 
+    it('Test access logs API', async()=>{
 
-    // });
-    // it('Test access logs API', async()=>{
+        let uri = URI(host)
+        .port(port)
+        .directory("/accesslogs")
 
-    //     let uri = URI(host)
-    //     .port(port)
-    //     .directory("/accesslogs")
-
-    //     let url = uri.toString();
+        let url = uri.toString();
         
-    //     let res = await client.get(url)
-    //     console.log(res);
+        let res = await client.get(url);
 
-    //     assert.strictEqual(res.status, 200);
-    // });
+        assert.strictEqual(res.status, 200);
+    });
+    it('Test operation log API', async()=>{
+        
+        let uri = URI(host)
+        .port(port)
+        .directory("/operationlogs")
+
+        let url = uri.toString();
+        let res = await client.get(url);
+        let id = res.data[0]._id
+        let expected = res.data[0]
+        let Newuri = URI(host)
+        .port(port)
+        .directory("/operationlogs")
+        .filename(id)
+
+        url = Newuri.toString();
+       
+        res = await client.get(url);        
+
+        assert.strictEqual(res.status, 200);
+        assert.deepStrictEqual(res.data, expected);
+    });
+    it('Test search operation log API', async()=>{
+         
+        let uri = URI(host)
+        .port(port)
+        .directory("/operationlogs/search")
+        .addSearch('height','0')
+            
+        let  url = uri.toString();
+
+        let res = await client.get(url);
+        console.log(res);
+
+        assert.strictEqual(res.status, 200);
+
+    });
+    it('Test search access log API', async()=>{
+
+        let uri = URI(host)
+        .port(port)
+        .directory("/accesslogs/search")
+        .addSearch('status','Granted')
+
+        let  url = uri.toString();
+        
+        let res = await client.get(url);
+
+        assert.strictEqual(res.status, 200);
+    });
     // it('Test send mail API', async()=>{
 
     //     let uri = URI(host)

@@ -167,7 +167,7 @@ class Stoa extends WebService
         this.app.post("/register-user", this.registerUser.bind(this));
         this.app.post("/signin", this.signIn.bind(this));
         this.app.post("/addblacklist", this.addBlacklist.bind(this));
-        this.app.delete("/deleteblacklist", this.deleteBlacklist.bind(this));
+        this.app.post("/deleteblacklist", this.deleteBlacklist.bind(this));
         this.app.get("/operationlogs", this.getOperationLogs.bind(this));
         this.app.get("/operationlogs/:id", this.getOperationLog.bind(this));
         this.app.get("/accesslogs", this.getAccessLogs.bind(this));
@@ -1648,11 +1648,11 @@ class Stoa extends WebService
     */
     public async addBlacklist(req: express.Request, res: express.Response): Promise<any>
     {
-        let time: any = new Date().getTime();          
+        let time: any = new Date().getTime();  
         try 
         {   
             const { blackListIp, description } = req.body;
-            const existBlacklist = await Blacklist.exists({ ipAddress: blackListIp });
+            const existBlacklist = await Blacklist.findOne({ ipAddress: blackListIp });
             if(existBlacklist) 
             {
                 res.status(409).send('Ip already exist');
@@ -1664,13 +1664,13 @@ class Stoa extends WebService
                 ipAddress: blackListIp,
                 description: description
             });
-            res.status(200).json({ message:'Ip added successfully', blackListIp });
-            let resTime:any = new Date().getTime() - time;
-            logger.http(`POST /addblacklist`,{ endpoint: `/addblacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
             if (!newBlacklistIp) 
             {
                 res.status(500).send("Interal server error");
             }
+                        res.status(200).json({ message:'Ip added successfully', blackListIp });
+            let resTime:any = new Date().getTime() - time;
+            logger.http(`POST /addblacklist`,{ endpoint: `/addblacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
             return { newBlacklistIp }
         } 
         catch (error) 
@@ -1684,13 +1684,14 @@ class Stoa extends WebService
     public async deleteBlacklist(req: express.Request, res: express.Response): Promise<any>
     {
         let time: any = new Date().getTime();        
-        let deletedIps:any = [];  
-        try 
+        let deletedIps:any = [];    
+       try 
         {
-             for(let i = 0; i < req.body.length; i++)
-             {
-                const { blacklistIp } = req.body[i]
-                
+            const ips =  req.body.ips
+            const len = ips.length
+            for(let i = 0; i < len ;i++)     
+            {      
+                const { blacklistIp } = ips[i]
                 await Blacklist.findOneAndRemove({ipAddress: blacklistIp}).then((res)=>{
                     deletedIps.push(res?.ipAddress)
                 })
