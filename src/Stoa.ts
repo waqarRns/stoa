@@ -167,12 +167,13 @@ class Stoa extends WebService
         this.app.post("/register-user", this.registerUser.bind(this));
         this.app.post("/signin", this.signIn.bind(this));
         this.app.post("/addblacklist", this.addBlacklist.bind(this));
+        this.app.get("/blacklist", this.allBlacklist.bind(this));
         this.app.post("/deleteblacklist", this.deleteBlacklist.bind(this));
         this.app.get("/operationlogs", this.getOperationLogs.bind(this));
+        this.app.get("/operationlogs/search", this.searchOperationLogs.bind(this));
         this.app.get("/operationlogs/:id", this.getOperationLog.bind(this));
         this.app.get("/accesslogs", this.getAccessLogs.bind(this));
         this.app.get("/accesslogs/search", this.searchAccessLogs.bind(this));
-        this.app.get("/operationlogs/search", this.searchOperationLogs.bind(this));
         this.app.post("/forgetpassword", this.sendMail.bind(this));
 
         let height: Height = new Height("0");
@@ -194,11 +195,11 @@ class Stoa extends WebService
                async(res) => {
                     
                     height.value = JSBI.BigInt(res.value);
-                    logger.info(`Connected to Agora, block height is ${res.toString()}`, { operation: Operation.connection, height: Stoa.height.toString(), success: true });
+                    logger.info(`Connected to Agora, block height is ${res.toString()}`, { operation: Operation.connection, height: Stoa.height.toString(), success: 'true' });
                     return super.start();
                 },
                 (err) => {
-                    logger.error(`Error: Could not connect to Agora node: ${err.toString()}`, { operation: Operation.connection, height: Stoa.height.toString(), success: false });
+                    logger.error(`Error: Could not connect to Agora node: ${err.toString()}`, { operation: Operation.connection, height: Stoa.height.toString(), success: 'false' });
                     process.exit(1);
                 })
             .then(
@@ -1516,37 +1517,37 @@ class Stoa extends WebService
      * Sign in to the admin panel
     */
     public async signIn(req: express.Request, res: express.Response): Promise<any>
-       {
-            let time: any = new Date().getTime();
-            try {
-                const { email, password } = req.body;
-                const user = await User.findOne({ email: email });
-                if(!user) 
-                {
-                    res.status(400).send('User not found');
-                    let resTime:any = new Date().getTime() - time;
-                    logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-                    return;
-                }
-                const matchedPassword: boolean = bcrypt.compareSync(password, user.password);
-                if (!matchedPassword) 
-                {
-                    res.status(400).send("Invalid password");
-                    let resTime:any = new Date().getTime() - time;
-                    logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-                    return;
-                }
-                const token: string = generateToken(email);
-                res.status(200).json({ message: 'Login successfully', token })
+    {
+        let time: any = new Date().getTime();
+        try {
+            const { email, password } = req.body;
+            const user = await User.findOne({ email: email });
+            if(!user) 
+            {
+                res.status(400).send('User not found');
                 let resTime:any = new Date().getTime() - time;
                 logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-                return { token };
-            } 
-            catch (error) 
-            {
-                logger.error('Error', error);       
+                return;
             }
-        };
+            const matchedPassword: boolean = bcrypt.compareSync(password, user.password);
+            if (!matchedPassword) 
+            {
+                res.status(400).send("Invalid password");
+                let resTime:any = new Date().getTime() - time;
+                logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                return;
+            }
+            const token: string = generateToken(email);
+            res.status(200).json({ message: 'Login successfully', token })
+            let resTime:any = new Date().getTime() - time;
+            logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+            return { token };
+        } 
+        catch (error) 
+        {
+            logger.error('Error', error);       
+        }
+    };
     /**
     * get all operation logs
     */
@@ -1679,6 +1680,29 @@ class Stoa extends WebService
         }
     };
     /**
+    *   get all blacklisted ips
+    */
+    public async allBlacklist(req: express.Request, res: express.Response): Promise<any>
+    {
+        let time: any = new Date().getTime();  
+        let pagination: IPagination = await this.paginate(req, res);
+        try 
+        {   
+            await Blacklist.find()
+            .skip((pagination.page-1)*pagination.page)
+            .limit(pagination.pageSize)
+            .exec((er:any, result:any) => {
+                res.status(200).json(result);
+                let resTime:any = new Date().getTime() - time;
+                logger.http(`GET /blacklist`,{ endpoint: `/blacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+            });
+        } 
+        catch (error) 
+        {
+            logger.error('Error', error);       
+        }
+    };
+    /**
     *   Add blacklist ip address to database
     */
     public async deleteBlacklist(req: express.Request, res: express.Response): Promise<any>
@@ -1716,8 +1740,8 @@ class Stoa extends WebService
             let ip = req.query.ip?.toString();
             let status = req.query.status?.toString();
             let endpoint = req.query.endpoint?.toString();
-            let from = req.query.from?.toString();
-            let to = req.query.to?.toString();
+            let from = req.query.from;
+            let to = req.query.to;
             let conditions = [];
             try 
             {   
@@ -1730,21 +1754,21 @@ class Stoa extends WebService
                 conditions.push({ 'meta.endpoint': endpoint })
                 if(from !== undefined && to !==undefined)
                 {
-                    let fromDate = new Date(from);
-                    let toDate = new Date(to);
-                    let isoFrom = fromDate.toISOString()
-                    let isoTo = toDate.toISOString();      
-                
-                    conditions.push({ timestamp: { $gte: isoFrom } } )
-                    conditions.push({ timestamp: { $lte: isoFrom } } )
+                    let fromDate = new Date(Number(from) * 1000);
+                    let toDate = new Date(Number(to) * 1000);
+                    
+                    conditions.push({ timestamp: { $gte: fromDate } } )
+                    conditions.push({ timestamp: { $lte: toDate } } )
                 }
                 let final_condition = conditions.length ? {$and: conditions} : {};
                 let db = Logger.dbInstance
-                db =  db.connection.db        
+                db =  db.connection.db          
                 await db.collection('access_logs').find(final_condition)
                         .skip((pagination.page-1)*pagination.page)
                         .limit(pagination.pageSize)
                         .toArray((er:any, result:any) => {
+            
+                            
                     res.status(200).json(result);
                     let resTime:any = new Date().getTime() - time;
                     logger.http(`GET /accesslogs/search`,{ endpoint: `/accesslogs/search`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
@@ -1768,6 +1792,7 @@ class Stoa extends WebService
         let from = req.query.from?.toString();
         let to = req.query.to?.toString();
         let conditions = [];
+        
         try 
         {   
             
@@ -1779,20 +1804,20 @@ class Stoa extends WebService
             conditions.push({ 'meta.success': status })
             if(from !== undefined && to !==undefined)
             {
-                let fromDate = new Date(from);
-                let toDate = new Date(to);
-                let isoFrom = fromDate.toISOString();
-                let isoTo = toDate.toISOString();                    
-                conditions.push({ timestamp: { $gte: isoFrom, $lte: isoTo} })
-                // conditions.push({ timestamp: { $lte: isoTo } })
+                let fromDate = new Date(Number(from) *1000 );
+                let toDate = new Date(Number(to)* 1000);                    
+                conditions.push({ timestamp: { $gte: fromDate } } )
+                conditions.push({ timestamp: { $lte: toDate } } )
             }
             let final_condition = conditions.length ? {$and: conditions} : {};
             let db = Logger.dbInstance
             db =  db.connection.db        
+
             await db.collection('operation_logs').find(final_condition)
                     .skip((pagination.page-1)*pagination.page)
                     .limit(pagination.pageSize)
                     .toArray((er:any, result:any) => {
+           
                 res.status(200).json(result);
                 let resTime:any = new Date().getTime() - time;
                 logger.http(`GET /operationlogs/search`,{ endpoint: `/operationlogs/search`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});

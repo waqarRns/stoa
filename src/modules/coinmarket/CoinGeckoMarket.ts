@@ -75,12 +75,12 @@ export class CoinGeckoMarket implements CoinMarket {
                     last_updated_at: marketCap.bosagora.last_updated_at
                 }
                 logger.info(`CoinMarket: Data Fetch Completed at ${marketCap.bosagora.last_updated_at}`,
-                { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: true });
+                { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: 'true' });
                 return resolve(coinMarketStat);
             }
             else {
                 logger.error(`Fail to fetch CoinMarket data`,
-                 { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: false });
+                 { operation: Operation.coinmarketcap, height: Stoa.height.toString(), success: 'false' });
                 reject(`Fail to fetch CoinMarket data`);
             }
         });

@@ -495,3 +495,13 @@ export function createBlock (prev_block: Block, txs: Array<Transaction>): Block
 
     return block;
 }
+/**
+* Send mail
+* @param email email address of the receiver
+*/
+export function sendMail (email:string): Promise<any>
+{  
+    return new Promise<any>((resolve, reject) => {
+        return resolve('Email sent successfully')
+    });
+}

@@ -41,8 +41,8 @@ switch (process.env.NODE_ENV) {
 }
 logger.transports.forEach((tp) => { tp.level = config.logging.level });
 
-logger.info(`Agora endpoint: ${config.server.agora_endpoint.toString()}`, { operation: Operation.connection, height: "", success: true });
-logger.info(`mysql database host: ${config.database.database}`, { operation: Operation.connection, height: "", success: true});
+logger.info(`Agora endpoint: ${config.server.agora_endpoint.toString()}`, { operation: Operation.connection, height: "", success: 'true' });
+logger.info(`mysql database host: ${config.database.database}`, { operation: Operation.connection, height: "", success: 'true'});
 logger.info(`MongoDB connection url: ${config.logging.mongodb_url}`);
 
 const stoa: Stoa = new Stoa(config.database,

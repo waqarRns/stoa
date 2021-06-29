@@ -50,7 +50,7 @@ export class Storages
             this.db.connect(function (err) {
                 if (err) throw err;
                 logger.info(`connected to mysql host: ${databaseConfig.host}`,
-                { operation: Operation.db, height: "", success: true });
+                { operation: Operation.db, height: "", success: 'true' });
             });
                 this.createTables()
                     .then(() =>

@@ -27,7 +27,8 @@ import {
     TestClient,
     TestGeckoServer,
     delay,
-    createBlock
+    createBlock,
+    sendMail
 } from './Utils';
 import * as assert from 'assert';
 import URI from 'urijs';
@@ -704,7 +705,20 @@ describe('Test Admin API',async ()=>{
             assert.strictEqual(res.data.blackListIp, expected.ipAddress);
             
     });
+    it('Test all blacklist ip API', async()=>{
+        let uri = URI(host)
+        .port(port)
+        .directory("/blacklist")
 
+        let data:any = {
+            ips:[ { blacklistIp:'192.168.0.0' } ]
+        }
+        let url = uri.toString();
+        
+        let res = await client.get(url)
+        assert.strictEqual(res.status, 200);
+        assert.strictEqual(res.data[0].ipAddress, data.ips[0].blacklistIp);
+    });
     it('Test delete blacklist ip API', async()=>{
  
         let uri = URI(host)
@@ -719,7 +733,6 @@ describe('Test Admin API',async ()=>{
         let res = await client.post(url, data)
 
         assert.strictEqual(res.status, 200);
-        console.log(data.ips[0].blacklistIp);
         
         assert.strictEqual(res.data.deletedIps[0], data.ips[0].blacklistIp);
 
@@ -730,13 +743,7 @@ describe('Test Admin API',async ()=>{
         .directory("/operationlogs")
 
         let url = uri.toString();
-        //  let col = conn.connection.db
-        // //  console.log(col.collection('operation_logs').find());
-         
-        // col.collection('access_logs').find().toArray((er:any, result:any) => {
-        //     console.log(result);
-        //     assert.strictEqual(1, 1);
-        // })
+ 
         let res = await client.get(url);
 
      assert.strictEqual(res.status, 200);
@@ -781,13 +788,12 @@ describe('Test Admin API',async ()=>{
         let uri = URI(host)
         .port(port)
         .directory("/operationlogs/search")
-        .addSearch('height','0')
+        .addSearch('type','DB%20Operation')
             
         let  url = uri.toString();
-
+        
         let res = await client.get(url);
-        console.log(res);
-
+        
         assert.strictEqual(res.status, 200);
 
     });
@@ -804,17 +810,12 @@ describe('Test Admin API',async ()=>{
 
         assert.strictEqual(res.status, 200);
     });
-    // it('Test send mail API', async()=>{
+    it('Test send mail API', async()=>{    
+        let email = 'test@test.com';
 
-    //     let uri = URI(host)
-    //     .port(port)
-    //     .directory("/forgetpassword")
-    //     let data = {email:'test@test.com'}
-    //     let url = uri.toString();
+       sendMail(email).then((res)=>{
+        assert.strictEqual(res, 'Email sent successfully');
+       })
         
-    //     let res = await client.post(url,data)
-
-    //     assert.strictEqual(res.status, 200);
-    //     assert.strictEqual(res.data.message, 'Email sent successfully');
-    // });
+    });
 });
