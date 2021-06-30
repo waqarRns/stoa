@@ -174,7 +174,9 @@ class Stoa extends WebService
         this.app.get("/operationlogs/:id", this.getOperationLog.bind(this));
         this.app.get("/accesslogs", this.getAccessLogs.bind(this));
         this.app.get("/accesslogs/search", this.searchAccessLogs.bind(this));
-        this.app.post("/forgetpassword", this.sendMail.bind(this));
+        this.app.post("/recover", this.recover.bind(this));
+        this.app.get("/reset/:token", this.reset.bind(this));
+        this.app.post("/reset/:token", this.resetPassword.bind(this));
 
         let height: Height = new Height("0");
 
@@ -1524,24 +1526,28 @@ class Stoa extends WebService
             const user = await User.findOne({ email: email });
             if(!user) 
             {
-                res.status(400).send('User not found');
+                res.status(400).send('The email address ' + email + ' is not associated with any account. Double-check your email address and try again.');
                 let resTime:any = new Date().getTime() - time;
                 logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
                 return;
             }
-            const matchedPassword: boolean = bcrypt.compareSync(password, user.password);
-            if (!matchedPassword) 
-            {
+            user.comparePassword(password, (err:any, isMatch:any)=>{
+                if(err)
+                {
                 res.status(400).send("Invalid password");
                 let resTime:any = new Date().getTime() - time;
                 logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-                return;
-            }
-            const token: string = generateToken(email);
+                return;  
+                }
+                else
+                {
+                    const token: string = generateToken(email);
             res.status(200).json({ message: 'Login successfully', token })
             let resTime:any = new Date().getTime() - time;
             logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
             return { token };
+                }
+            })
         } 
         catch (error) 
         {
@@ -1615,31 +1621,121 @@ class Stoa extends WebService
         }
     };
     /**
-    * Forget password, send mail through sendgrid
+    * get passwordToken and verify the token
     */
-    public async sendMail(req: express.Request, res: express.Response): Promise<any>
+    public async reset(req: express.Request, res: express.Response): Promise<any>
     {
         let time: any = new Date().getTime();
-        let email = req.body.email;
         try 
-        {  
-            const msg = {
-                to: email, // Change to your recipient
-                from: 'ahmed@rnssol.com', // Change to your verified sender
-                subject: 'Sending with SendGrid is Fun',
-                text: 'and easy to do anywhere, even with Node.js',
-                html: '<strong>and easy to do anywhere, even with Node.js</strong>',
-            }
-            sgMail
-                .send(msg)
-                .catch((error) => {
-                 logger.error('Something went wrong, unable to send mail. Error :', error)
-                })
-                res.status(200).json({ message:'Email sent successfully'})
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /forgetpassword`,{ endpoint: `/forgetpassword`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+        {   
+        const { token } = req.params;
+
+        const user = await User.findOne({resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() }});
+
+        if (!user)
+        {
+            let resTime:any = new Date().getTime() - time;
+            res.status(401).json({message: 'Password reset token is invalid or has expired.'});
+            logger.http(`GET /reset/:token`,{ endpoint: `/reset/:token`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+            return;
+        } 
+        
+        //Redirect user to form with the email address
+        let resTime:any = new Date().getTime() - time;
+        logger.http(`GET /reset/:token`,{ endpoint: `/reset/:token`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+        res.status(200).send({message: 'Token verified'})
         } 
         catch (error) 
+        {
+            logger.error('Error', error);       
+        }
+    };
+    /**
+    * reset user password
+    */
+    public async resetPassword(req: express.Request, res: express.Response): Promise<any>
+    {
+        let time: any = new Date().getTime();
+        try 
+        {   
+        const { token } = req.params;
+        const { password } = req.body;
+
+        const user = await User.findOne({resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() }});
+        if (!user)
+        {
+            let resTime:any = new Date().getTime() - time;
+            res.status(401).json({message: 'Password reset token is invalid or has expired.'});
+            logger.http(`POST /reset/:token`,{ endpoint: `/reset/:token`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+            return;
+        } 
+            //Set the new password
+            user.password = password;
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpires = undefined;
+            user.isVerified = true; 
+
+             // Save the updated user object
+            await user.save();
+            let resTime:any = new Date().getTime() - time;
+            logger.http(`POST /reset/:token`,{ endpoint: `/reset/:token`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+            res.status(200).json({message: 'Your password has been updated.'})
+        } 
+        catch (error) 
+        {
+            logger.error('Error', error);       
+        }
+    };
+    /**
+    * Forget password, send mail through sendgrid
+    */
+    public async recover(req: express.Request, res: express.Response): Promise<any>
+    {
+        let time: any = new Date().getTime();
+        const { email } = req.body;
+        let host = req.headers.host;
+        try 
+        {  
+            const user = await User.findOne({ email: email });
+            if(!user) 
+            {
+                res.status(400).send('The email address ' + email + ' is not associated with any account. Double-check your email address and try again.');
+                let resTime:any = new Date().getTime() - time;
+                logger.http(`POST /recover`,{ endpoint: `/recover`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                return;
+            }
+
+            //Generate and set password reset token
+            user.generatePasswordReset();
+            // Save the updated user object
+            await user.save()
+            .then(user => {
+                let link = "http://" + host + "/reset/" + user.resetPasswordToken;
+                // send email
+                const mailOptions = {
+                    to: user.email,
+                    from: 'ahmed@rnssol.com',//email of the sender
+                    subject: "Password change request",
+                    html: `Hi \n 
+                Please click on the following link ${link} to reset your password. \n\n 
+                If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+                };
+
+                sgMail
+                    .send(mailOptions).then(()=>{
+                        res.status(200).json({ message:'Email sent successfully'})
+                        let resTime:any = new Date().getTime() - time;
+                        logger.http(`POST /recover`,{ endpoint: `/recover`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                    })
+                    .catch((error) => {
+                        res.status(500).json({message: error.message});
+                        logger.error('Something went wrong, unable to send mail. Error :', error)
+                        return;
+                    })
+                   
+            }).catch(err => logger.error('User db error', err));
+        }
+        catch(error)
         {
             logger.error('Error', error);       
         }
@@ -1669,7 +1765,7 @@ class Stoa extends WebService
             {
                 res.status(500).send("Interal server error");
             }
-                        res.status(200).json({ message:'Ip added successfully', blackListIp });
+            res.status(200).json({ message:'Ip added successfully', blackListIp });
             let resTime:any = new Date().getTime() - time;
             logger.http(`POST /addblacklist`,{ endpoint: `/addblacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
             return { newBlacklistIp }

@@ -93,7 +93,8 @@ export class Logger
             http: 0,
             info: 1,
             error: 2,
-            debug: 3
+            debug: 3,
+            warn: 4
         }
         const options = {
             level: 'info',

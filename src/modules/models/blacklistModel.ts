@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
+
 /**
 * Blacklist interface 
 */
@@ -10,7 +11,7 @@ interface IBlacklist
 /**
 * Mongoose schema for blacklist Ip
 */
-const blacklistSchema = new mongoose.Schema(
+const blacklistSchema = new mongoose.Schema<IBlacklist>(
     {
         ipAddress: {
             type: String,
@@ -25,5 +26,5 @@ const blacklistSchema = new mongoose.Schema(
         timestamps: true,
     }
 )
-const Blacklist = mongoose.model<IBlacklist & mongoose.Document>('Blacklist', blacklistSchema);
+const Blacklist = mongoose.model<IBlacklist & Document>('Blacklist', blacklistSchema);
 export default Blacklist;

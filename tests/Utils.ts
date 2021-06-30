@@ -28,6 +28,7 @@ import { IDatabaseConfig } from '../src/modules/common/Config';
 import JSBI from 'jsbi';
 import { CoinMarketService } from '../src/modules/service/CoinMarketService';
 import { IMarketCap } from "../src/Types";
+import User from '../src/modules/models/userModel'
 
 export const sample_data_raw = (() => {
     return [
@@ -499,9 +500,15 @@ export function createBlock (prev_block: Block, txs: Array<Transaction>): Block
 * Send mail
 * @param email email address of the receiver
 */
-export function sendMail (email:string): Promise<any>
+export async function recover (email:string): Promise<any>
 {  
-    return new Promise<any>((resolve, reject) => {
-        return resolve('Email sent successfully')
-    });
+  
+    const user = await User.findOne({email: email})
+    if(!user)
+    return ('The email address ' + email + ' is not associated with any account. Double-check your email address and try again.')
+    user.generatePasswordReset();
+    const token = user.resetPasswordToken;
+    await user.save()
+    return({message:'Email sent successfully', token })
+  
 }

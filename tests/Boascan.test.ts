@@ -28,7 +28,7 @@ import {
     TestGeckoServer,
     delay,
     createBlock,
-    sendMail
+    recover
 } from './Utils';
 import * as assert from 'assert';
 import URI from 'urijs';
@@ -616,6 +616,7 @@ describe('Test Admin API',async ()=>{
     let coinMarketService: CoinMarketService;
     let config: Config = new Config();
     var conn:any ;
+
     before('Wait for the package libsodium to finish loading', async () => {
         SodiumHelper.assign(new BOASodium());
         await SodiumHelper.init();
@@ -680,11 +681,50 @@ describe('Test Admin API',async ()=>{
         }
         let url = uri.toString();
         let res =  await client.post(url, user)
-
+      
         assert.strictEqual(res.status, 200);
         assert.strictEqual(res.data.message, 'Login successfully');
     });
-    
+    it('Test recover API', async()=>{    
+        let email = 'test1@test.com'
+        recover(email).then((res:any)=>{  
+        assert.strictEqual(res.message, 'Email sent successfully');
+       })
+    });
+    it('Test reset API', async()=>{    
+        let email = 'test1@test.com';
+        var token;
+        recover(email).then(async(res:any)=>{
+        token = res.token;  
+        let uri = URI(host)
+        .port(port)
+        .directory("/reset")
+        .filename(token)
+
+        let url = uri.toString();
+        let result = await client.get(url);  
+        assert.strictEqual(result.status, 200);
+        assert.strictEqual(result.data.message, 'Token verified');
+       })
+   });
+   it('Test reset password API', async()=>{    
+        let email = 'test1@test.com';
+        let token;
+   
+        recover(email).then(async(res:any)=>{
+        token = res.token; 
+        let uri = URI(host)
+        .port(port)
+        .directory("/reset")
+        .filename(token)
+        let data = { password:'54321' }
+        let url = uri.toString();
+        let result = await client.post(url, data);      
+        assert.strictEqual(result.status, 200);
+        assert.strictEqual(result.data.message, 'Your password has been updated.');
+        
+        })
+    });    
     it('Test add blacklist ip API',async ()=>{
         let uri = URI(host)
         .port(port)
@@ -810,12 +850,5 @@ describe('Test Admin API',async ()=>{
 
         assert.strictEqual(res.status, 200);
     });
-    it('Test send mail API', async()=>{    
-        let email = 'test@test.com';
 
-       sendMail(email).then((res)=>{
-        assert.strictEqual(res, 'Email sent successfully');
-       })
-        
-    });
 });
