@@ -193,6 +193,7 @@ class Stoa extends WebService {
         this.app.post("/block_externalized", this.postBlock.bind(this));
         this.app.post("/preimage_received", this.putPreImage.bind(this));
         this.app.post("/transaction_received", this.putTransaction.bind(this));
+        this.app.get("/holders", this.getBoaHolders.bind(this));
         this.app.post("/register-user", this.registerUser.bind(this));
         this.app.post("/signin", this.signIn.bind(this));
         this.app.post("/addblacklist", this.addBlacklist.bind(this));
