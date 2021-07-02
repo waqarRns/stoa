@@ -24,8 +24,7 @@ const logFormat = printf(({ level, message, label, timestamp }) => {
 });
 
 
-export class Logger
-{
+export class Logger {
     public static dbInstance: any
     /**
      * Create the 'default' file transport to be added to a logger
@@ -78,7 +77,7 @@ export class Logger
      * @return A transport that can be passed to `logger.add`
      */
     public static defaultDatabaseTransport(mongodb_url: string) {
-        const customLevel:config.AbstractConfigSetLevels =
+        const customLevel: config.AbstractConfigSetLevels =
         {
             http: 0,
             info: 1,
@@ -94,9 +93,9 @@ export class Logger
             format: combine(
                 timestamp(),
                 json(),
-                metadata({ fillExcept: ['message', 'level', 'timestamp', 'label'] }),                
+                metadata({ fillExcept: ['message', 'level', 'timestamp', 'label'] }),
             ),
-            options : {useUnifiedTopology: true}
+            options: { useUnifiedTopology: true }
         };
         const access_options = {
             level: 'http',
@@ -106,24 +105,23 @@ export class Logger
             format: combine(timestamp(), json(), metadata({ fillExcept: ["message", "level", "timestamp", "label"] })),
             options: { useUnifiedTopology: true },
         };
-       return winston.createLogger({
+        return winston.createLogger({
             levels: customLevel,
             transports: [
                 new MongoDB(options),
                 new MongoDB(access_options),
             ]
-          });
+        });
     }
     /**
      * Method build connectivity with logging database.
      * @param mongodb_url
      * @returns Ture if successfull, and return false if connection issue occers.
      */
-    public static async BuildDbConnection(mongodb_url: string) 
-    {
+    public static async BuildDbConnection(mongodb_url: string) {
         try {
             Logger.dbInstance = await mongoose.connect(mongodb_url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });
-           return true;  
+            return true;
         } catch (err) {
             logger.error(`stoa is unable to build connection for db log. Error:`, err);
             return false;

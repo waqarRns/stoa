@@ -305,7 +305,7 @@ export class LoggingConfig implements ILoggingConfig {
     /**
      * Sendgrid API key
      */
-    sendgrid_api_key: string;  
+    sendgrid_api_key: string;
 
     /**
      * Constructor
@@ -472,7 +472,7 @@ export interface ILoggingConfig {
     /**
      * Sendgrid API key
      */
-    sendgrid_api_key: string;    
+    sendgrid_api_key: string;
 }
 
 /**

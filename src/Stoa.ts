@@ -165,7 +165,7 @@ class Stoa extends WebService {
         // parse application/json
         this.app.use(bodyParser.json({ limit: "1mb" }));
         this.app.use(cors(cors_options));
-        
+
         // Prepare routes
         this.app.get("/block_height", this.getBlockHeight.bind(this));
         this.app.get("/block_height_at/:time", this.getBlockHeightAt.bind(this));
@@ -334,8 +334,8 @@ class Stoa extends WebService {
                     out_put.push(validator);
                 }
                 res.status(200).send(JSON.stringify(out_put));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(height?`GET /validators/height=${height?.toString()}`:`/validators/height`,{ endpoint: '/validators',RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(height ? `GET /validators/height=${height?.toString()}` : `/validators/height`, { endpoint: '/validators', RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
 
             })
             .catch((err) => {
@@ -434,7 +434,7 @@ class Stoa extends WebService {
                 }
                 res.status(200).send(JSON.stringify(out_put));
                 let resTime: any = new Date().getTime() - time;
-                logger.http(height?`GET /validator/${address}/${height}`:`/validator`,{ endpoint: `/validator`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});  
+                logger.http(height ? `GET /validator/${address}/${height}` : `/validator`, { endpoint: `/validator`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -454,8 +454,7 @@ class Stoa extends WebService {
      *
      * Returns a transaction status.
      */
-    private getTransactionStatus (req: express.Request, res: express.Response)
-    {
+    private getTransactionStatus(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let hash: string = String(req.params.hash);
         let tx_hash: Hash;
@@ -480,8 +479,8 @@ class Stoa extends WebService {
                     };
                 }
                 res.status(200).send(JSON.stringify(status));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /transaction/status/${hash}`,{ endpoint: `/transaction/status`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /transaction/status/${hash}`, { endpoint: `/transaction/status`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -523,8 +522,8 @@ class Stoa extends WebService {
                     low: fees[2].toString(),
                 };
                 res.status(200).send(JSON.stringify(data));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /transaction/fees/${size}`,{ endpoint: `/transaction/fees`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /transaction/fees/${size}`, { endpoint: `/transaction/fees`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -543,8 +542,7 @@ class Stoa extends WebService {
      *
      * Returns a pending transaction by the transaction hash.
      */
-    private getTransactionPending (req: express.Request, res: express.Response)
-    {
+    private getTransactionPending(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let hash: string = String(req.params.hash);
         let tx_hash: Hash;
@@ -564,8 +562,8 @@ class Stoa extends WebService {
                 }
 
                 res.status(200).send(JSON.stringify(tx));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /transaction/pending/${hash}`,{ endpoint: `/transaction/pending`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /transaction/pending/${hash}`, { endpoint: `/transaction/pending`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -584,8 +582,7 @@ class Stoa extends WebService {
      *
      * Returns a transaction by the transaction hash.
      */
-    private getTransaction (req: express.Request, res: express.Response)
-    {
+    private getTransaction(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let hash: string = String(req.params.hash);
         let tx_hash: Hash;
@@ -605,8 +602,8 @@ class Stoa extends WebService {
                 }
 
                 res.status(200).send(JSON.stringify(tx));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /transaction/${hash}`,{ endpoint: `/transaction`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /transaction/${hash}`, { endpoint: `/transaction`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -625,8 +622,7 @@ class Stoa extends WebService {
      *
      * Returns a set of UTXOs of the address.
      */
-    private getUTXO (req: express.Request, res: express.Response)
-    {
+    private getUTXO(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let address: string = String(req.params.address);
         this.ledger_storage
@@ -647,8 +643,8 @@ class Stoa extends WebService {
                     utxo_array.push(utxo);
                 }
                 res.status(200).send(JSON.stringify(utxo_array));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /utxo/${address}`,{ endpoint: `/utxo`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /utxo/${address}`, { endpoint: `/utxo`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -741,8 +737,7 @@ class Stoa extends WebService {
      * Returns a set of transactions history of the addresses.
      * ```
      */
-    private async getWalletTransactionsHistory(req: express.Request, res: express.Response)
-    {
+    private async getWalletTransactionsHistory(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let address: string = String(req.params.address);
         let filter_begin: number | undefined;
@@ -825,8 +820,8 @@ class Stoa extends WebService {
                     });
                 }
                 res.status(200).send(JSON.stringify(out_put));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /wallet/transactions/history/${address}`,{ endpoint: `/wallet/transactions/history`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /wallet/transactions/history/${address}`, { endpoint: `/wallet/transactions/history`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -846,8 +841,7 @@ class Stoa extends WebService {
      *
      * Returns a transaction overview.
      */
-    private getWalletTransactionOverview (req: express.Request, res: express.Response)
-    {
+    private getWalletTransactionOverview(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let txHash: string = String(req.params.hash);
         let tx_hash: Hash;
@@ -915,8 +909,8 @@ class Stoa extends WebService {
                     });
 
                 res.status(200).send(JSON.stringify(overview));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /wallet/transaction/overview/${txHash}`,{ endpoint: `/wallet/transaction/overview`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /wallet/transaction/overview/${txHash}`, { endpoint: `/wallet/transaction/overview`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -936,13 +930,12 @@ class Stoa extends WebService {
      *
      * Returns a block overview.
      */
-     private getBlockSummary(req: express.Request, res: express.Response) 
-     {
+    private getBlockSummary(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let field: string;
         let value: string | Buffer;
 
-         // Validating Parameter - height
+        // Validating Parameter - height
         if (req.query.height !== undefined && Utils.isPositiveInteger(req.query.height.toString())) {
             field = "height";
             value = String(req.query.height);
@@ -990,10 +983,10 @@ class Stoa extends WebService {
                         total_fee: data[0].total_fee,
                         total_size: data[0].total_size,
                     };
-                res.status(200).send(JSON.stringify(overview));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /block-summary/`,{ endpoint: `/block-summary/`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-            }
+                    res.status(200).send(JSON.stringify(overview));
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`GET /block-summary/`, { endpoint: `/block-summary/`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                }
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -1013,8 +1006,7 @@ class Stoa extends WebService {
      *
      *@returns Returns enrolled validators of block.
      */
-    private async getBlockEnrollments(req: express.Request, res: express.Response) 
-    {
+    private async getBlockEnrollments(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let field: string;
         let value: string | Buffer;
@@ -1066,8 +1058,8 @@ class Stoa extends WebService {
                         total_data: data.total_records,
                     };
                     res.status(200).send(JSON.stringify(enrollmentList));
-                    let resTime:any = new Date().getTime() - time;
-                    logger.http(`GET /block-enrollments/`,{ endpoint: `/block-enrollments/`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`GET /block-enrollments/`, { endpoint: `/block-enrollments/`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                     return
                 }
             })
@@ -1089,8 +1081,7 @@ class Stoa extends WebService {
      *
      * @returns Returns transactions of block.
      */
-    private async getBlockTransactions(req: express.Request, res: express.Response) 
-    {
+    private async getBlockTransactions(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let field: string;
         let value: string | Buffer;
@@ -1149,8 +1140,8 @@ class Stoa extends WebService {
                         total_data: data.total_data,
                     };
                     res.status(200).send(JSON.stringify(transactionList));
-                    let resTime:any = new Date().getTime() - time;
-                    logger.http(`GET /block-transactions/`,{ endpoint: `/block-transactions/`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`GET /block-transactions/`, { endpoint: `/block-transactions/`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                     return
                 }
             })
@@ -1190,8 +1181,8 @@ class Stoa extends WebService {
                         active_validators: 155055,
                     };
                     res.status(200).send(JSON.stringify(boaStats));
-                    let resTime:any = new Date().getTime() - time;
-                    logger.http(`/boa-stats/`,{ endpoint: `/boa-stats/`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`/boa-stats/`, { endpoint: `/boa-stats/`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                     return
                 }
             })
@@ -1205,8 +1196,7 @@ class Stoa extends WebService {
             });
     }
 
-    private verifyPayment(req: express.Request, res: express.Response) 
-    {
+    private verifyPayment(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
         let hash: string = String(req.params.hash);
 
@@ -1252,8 +1242,8 @@ class Stoa extends WebService {
                                 message: "Verification failed",
                             };
                             res.status(200).send(JSON.stringify(status));
-                            let resTime:any = new Date().getTime() - time;
-                            logger.http(`GET /spv/${hash}`,{ endpoint: `/spv`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                            let resTime: any = new Date().getTime() - time;
+                            logger.http(`GET /spv/${hash}`, { endpoint: `/spv`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                         }
                     })
                     .catch((error) => {
@@ -1305,8 +1295,8 @@ class Stoa extends WebService {
         });
 
         res.status(200).send();
-        let resTime:any = new Date().getTime() - time;
-        logger.http(`POST /block_externalized=${req.body.block.toString()}`,{ endpoint: `/block_externalized`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+        let resTime: any = new Date().getTime() - time;
+        logger.http(`POST /block_externalized=${req.body.block.toString()}`, { endpoint: `/block_externalized`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
     }
 
     /**
@@ -1333,8 +1323,8 @@ class Stoa extends WebService {
         });
 
         res.status(200).send();
-        let resTime:any = new Date().getTime() - time;
-        logger.http(`POST /preimage_received preimage=${req.body.preimage.toString()}`,{ endpoint: `/preimage_received preimage`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+        let resTime: any = new Date().getTime() - time;
+        logger.http(`POST /preimage_received preimage=${req.body.preimage.toString()}`, { endpoint: `/preimage_received preimage`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
     }
 
     /**
@@ -1389,8 +1379,8 @@ class Stoa extends WebService {
         });
 
         res.status(200).send();
-        let resTime:any = new Date().getTime() - time;
-        logger.http(`POST /transaction_received tx=${req.body.tx.toString()}`,{ endpoint: `/transaction_received`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+        let resTime: any = new Date().getTime() - time;
+        logger.http(`POST /transaction_received tx=${req.body.tx.toString()}`, { endpoint: `/transaction_received`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
     }
 
     /**
@@ -1427,8 +1417,8 @@ class Stoa extends WebService {
                     pending_array.push(tx);
                 }
                 res.status(200).send(JSON.stringify(pending_array));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /wallet/transactions/pending/${address}`,{ endpoint: `/wallet/transactions/pending`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /wallet/transactions/pending/${address}`, { endpoint: `/wallet/transactions/pending`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -1475,8 +1465,8 @@ class Stoa extends WebService {
                     time_stamp: rows[0].time_stamp,
                 };
                 res.status(200).send(JSON.stringify(info));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(height?`GET /wallet/blocks/header/height=${height?.toString()}`:`/wallet/blocks/header`,{ endpoint: `/wallet/blocks/header`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(height ? `GET /wallet/blocks/header/height=${height?.toString()}` : `/wallet/blocks/header`, { endpoint: `/wallet/blocks/header`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -1493,21 +1483,18 @@ class Stoa extends WebService {
      *
      * Return the highest block height stored in Stoa
      */
-    private getBlockHeight (req: express.Request, res: express.Response)
-    {   
-        let time:any = new Date().getTime();
+    private getBlockHeight(req: express.Request, res: express.Response) {
+        let time: any = new Date().getTime();
         this.ledger_storage
             .getBlockHeight()
             .then((row: Height | null) => {
-                if (row == null)
-                {
+                if (row == null) {
                     res.status(400).send(`The block height not found.`);
                 }
-                else
-                {    
+                else {
                     res.status(200).send(JSON.stringify(row));
-                    let resTime :any = new Date().getTime() - time;    
-                    logger.http(`GET /block_height`,{ endpoint: '/block_height',RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`GET /block_height`, { endpoint: '/block_height', RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 }
 
             })
@@ -1598,8 +1585,8 @@ class Stoa extends WebService {
                     });
                 }
                 res.status(200).send(JSON.stringify(block_list));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /latest-blocks`,{ endpoint: `/latest-blocks`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /latest-blocks`, { endpoint: `/latest-blocks`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 return
             }
         });
@@ -1636,8 +1623,8 @@ class Stoa extends WebService {
                     )
                 }
                 res.status(200).send(JSON.stringify(transactionList));
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /latest-transactions`,{ endpoint: `/latest-transactions`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /latest-transactions`, { endpoint: `/latest-transactions`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 return
             }
         })
@@ -1645,227 +1632,198 @@ class Stoa extends WebService {
     /**
      * Register new admin user
     */
-     public async registerUser(req: express.Request, res: express.Response): Promise<any>
-    {   
+    public async registerUser(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
         try {
             const { name, email, password } = req.body;
             const exisitngUser = await User.findOne({ email: email });
-            if(exisitngUser) 
-            {
+            if (exisitngUser) {
                 res.status(409).send('User already registered');
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`POST /register-user`,{ endpoint: `/register-user`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`POST /register-user`, { endpoint: `/register-user`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 return;
 
             }
             const hashedPassword = bcrypt.hashSync(password, 10);
             const userRecord = await User.create({
                 name: name,
-                email:email,
-                password:hashedPassword
+                email: email,
+                password: hashedPassword
             });
-            res.status(200).json({ message:'User created successfully', email });
-            let resTime:any = new Date().getTime() - time;
-            logger.http(`POST /register-user`,{ endpoint: `/register-user`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-            if (!userRecord) 
-            {
+            res.status(200).json({ message: 'User created successfully', email });
+            let resTime: any = new Date().getTime() - time;
+            logger.http(`POST /register-user`, { endpoint: `/register-user`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+            if (!userRecord) {
                 res.status(500).send("Interal server error");
             }
             return { userRecord }
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
      * Sign in to the admin panel
     */
-    public async signIn(req: express.Request, res: express.Response): Promise<any>
-    {
+    public async signIn(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
         try {
             const { email, password } = req.body;
             const user = await User.findOne({ email: email });
-            if(!user) 
-            {
+            if (!user) {
                 res.status(400).send('The email address ' + email + ' is not associated with any account. Double-check your email address and try again.');
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`POST /signin`, { endpoint: `/signin`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 return;
             }
-            user.comparePassword(password, (err:any, isMatch:any)=>{
-                if(err)
-                {
-                res.status(400).send("Invalid password");
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-                return;  
+            user.comparePassword(password, (err: any, isMatch: any) => {
+                if (err) {
+                    res.status(400).send("Invalid password");
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`POST /signin`, { endpoint: `/signin`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                    return;
                 }
-                else
-                {
+                else {
                     const token: string = generateToken(email);
-            res.status(200).json({ message: 'Login successfully', token })
-            let resTime:any = new Date().getTime() - time;
-            logger.http(`POST /signin`,{ endpoint: `/signin`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-            return { token };
+                    res.status(200).json({ message: 'Login successfully', token })
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`POST /signin`, { endpoint: `/signin`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                    return { token };
                 }
             })
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     * get all operation logs
     */
-    public async getOperationLogs(req: express.Request, res: express.Response): Promise<any>
-    {
+    public async getOperationLogs(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
         let pagination: IPagination = await this.paginate(req, res);
-        try 
-        {   
-         let db = Logger.dbInstance
-         db =  db.connection.db         
-         db.collection('operation_logs').find().skip((pagination.page-1)*pagination.page).limit(pagination.pageSize).toArray((er:any, result:any) => {
-            res.status(200).json(result);
-            let resTime:any = new Date().getTime() - time;
-            logger.http(`GET /operationlogs`,{ endpoint: `/operationlogs`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-         });
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+        try {
+            let db = Logger.dbInstance
+            db = db.connection.db
+            db.collection('operation_logs').find().skip((pagination.page - 1) * pagination.page).limit(pagination.pageSize).toArray((er: any, result: any) => {
+                res.status(200).json(result);
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /operationlogs`, { endpoint: `/operationlogs`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+            });
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     * get all access logs
     */
-    public async getAccessLogs(req: express.Request, res: express.Response): Promise<any>
-    {
+    public async getAccessLogs(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
         let pagination: IPagination = await this.paginate(req, res);
-        try 
-        {   
+        try {
             let db = Logger.dbInstance
-            db =  db.connection.db         
-            db.collection('access_logs').find().skip((pagination.page-1)*pagination.page).limit(pagination.pageSize).toArray((er:any, result:any) => {
+            db = db.connection.db
+            db.collection('access_logs').find().skip((pagination.page - 1) * pagination.page).limit(pagination.pageSize).toArray((er: any, result: any) => {
                 res.status(200).json(result);
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /accesslogs`,{ endpoint: `/accesslogs`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`GET /accesslogs`, { endpoint: `/accesslogs`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             });
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     * get detailed opreation log
     */
-    public async getOperationLog(req: express.Request, res: express.Response): Promise<any>
-    {
+    public async getOperationLog(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
         let id = new ObjectID(req.params.id);
-        try 
-        {   
+        try {
             let db = Logger.dbInstance;
-            db =  db.connection.db;  
+            db = db.connection.db;
             let data = await db.collection('operation_logs').findOne({ _id: id })
             res.status(200).send(JSON.stringify(data))
-            let resTime:any = new Date().getTime() - time;
-            logger.http(`GET /operationlogs/:id`,{ endpoint: `/operationlogs/:id`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+            let resTime: any = new Date().getTime() - time;
+            logger.http(`GET /operationlogs/:id`, { endpoint: `/operationlogs/:id`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+        }
+        catch (error) {
+            logger.error('Error', error);
 
         }
     };
     /**
     * get passwordToken and verify the token
     */
-    public async reset(req: express.Request, res: express.Response): Promise<any>
-    {
+    public async reset(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
-        try 
-        {   
-        const { token } = req.params;
+        try {
+            const { token } = req.params;
 
-        const user = await User.findOne({resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() }});
+            const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
 
-        if (!user)
-        {
-            let resTime:any = new Date().getTime() - time;
-            res.status(401).json({message: 'Password reset token is invalid or has expired.'});
-            logger.http(`GET /reset/:token`,{ endpoint: `/reset/:token`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-            return;
-        } 
-        
-        //Redirect user to form with the email address
-        let resTime:any = new Date().getTime() - time;
-        logger.http(`GET /reset/:token`,{ endpoint: `/reset/:token`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-        res.status(200).send({message: 'Token verified'})
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+            if (!user) {
+                let resTime: any = new Date().getTime() - time;
+                res.status(401).json({ message: 'Password reset token is invalid or has expired.' });
+                logger.http(`GET /reset/:token`, { endpoint: `/reset/:token`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                return;
+            }
+
+            //Redirect user to form with the email address
+            let resTime: any = new Date().getTime() - time;
+            logger.http(`GET /reset/:token`, { endpoint: `/reset/:token`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+            res.status(200).send({ message: 'Token verified' })
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     * reset user password
     */
-    public async resetPassword(req: express.Request, res: express.Response): Promise<any>
-    {
+    public async resetPassword(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
-        try 
-        {   
-        const { token } = req.params;
-        const { password } = req.body;
+        try {
+            const { token } = req.params;
+            const { password } = req.body;
 
-        const user = await User.findOne({resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() }});
-        if (!user)
-        {
-            let resTime:any = new Date().getTime() - time;
-            res.status(401).json({message: 'Password reset token is invalid or has expired.'});
-            logger.http(`POST /reset/:token`,{ endpoint: `/reset/:token`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-            return;
-        } 
+            const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+            if (!user) {
+                let resTime: any = new Date().getTime() - time;
+                res.status(401).json({ message: 'Password reset token is invalid or has expired.' });
+                logger.http(`POST /reset/:token`, { endpoint: `/reset/:token`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                return;
+            }
             //Set the new password
             user.password = password;
             user.resetPasswordToken = undefined;
             user.resetPasswordExpires = undefined;
-            user.isVerified = true; 
+            user.isVerified = true;
 
-             // Save the updated user object
+            // Save the updated user object
             await user.save();
-            let resTime:any = new Date().getTime() - time;
-            logger.http(`POST /reset/:token`,{ endpoint: `/reset/:token`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-            res.status(200).json({message: 'Your password has been updated.'})
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+            let resTime: any = new Date().getTime() - time;
+            logger.http(`POST /reset/:token`, { endpoint: `/reset/:token`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+            res.status(200).json({ message: 'Your password has been updated.' })
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     * Forget password, send mail through sendgrid
     */
-    public async recover(req: express.Request, res: express.Response): Promise<any>
-    {
+    public async recover(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
         const { email } = req.body;
         let host = req.headers.host;
-        try 
-        {  
+        try {
             const user = await User.findOne({ email: email });
-            if(!user) 
-            {
+            if (!user) {
                 res.status(400).send('The email address ' + email + ' is not associated with any account. Double-check your email address and try again.');
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`POST /recover`,{ endpoint: `/recover`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`POST /recover`, { endpoint: `/recover`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 return;
             }
 
@@ -1873,177 +1831,159 @@ class Stoa extends WebService {
             user.generatePasswordReset();
             // Save the updated user object
             await user.save()
-            .then(user => {
-                let link = "http://" + host + "/reset/" + user.resetPasswordToken;
-                // send email
-                const mailOptions = {
-                    to: user.email,
-                    from: 'ahmed@rnssol.com',//email of the sender
-                    subject: "Password change request",
-                    html: `Hi \n 
+                .then(user => {
+                    let link = "http://" + host + "/reset/" + user.resetPasswordToken;
+                    // send email
+                    const mailOptions = {
+                        to: user.email,
+                        from: 'ahmed@rnssol.com',//email of the sender
+                        subject: "Password change request",
+                        html: `Hi \n 
                 Please click on the following link ${link} to reset your password. \n\n 
                 If you did not request this, please ignore this email and your password will remain unchanged.\n`,
-                };
+                    };
 
-                sgMail
-                    .send(mailOptions).then(()=>{
-                        res.status(200).json({ message:'Email sent successfully'})
-                        let resTime:any = new Date().getTime() - time;
-                        logger.http(`POST /recover`,{ endpoint: `/recover`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-                    })
-                    .catch((error) => {
-                        res.status(500).json({message: error.message});
-                        logger.error('Something went wrong, unable to send mail. Error :', error)
-                        return;
-                    })
-                   
-            }).catch(err => logger.error('User db error', err));
+                    sgMail
+                        .send(mailOptions).then(() => {
+                            res.status(200).json({ message: 'Email sent successfully' })
+                            let resTime: any = new Date().getTime() - time;
+                            logger.http(`POST /recover`, { endpoint: `/recover`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                        })
+                        .catch((error) => {
+                            res.status(500).json({ message: error.message });
+                            logger.error('Something went wrong, unable to send mail. Error :', error)
+                            return;
+                        })
+
+                }).catch(err => logger.error('User db error', err));
         }
-        catch(error)
-        {
-            logger.error('Error', error);       
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     *   Add blacklist ip address to database
     */
-    public async addBlacklist(req: express.Request, res: express.Response): Promise<any>
-    {
-        let time: any = new Date().getTime();  
-        try 
-        {   
+    public async addBlacklist(req: express.Request, res: express.Response): Promise<any> {
+        let time: any = new Date().getTime();
+        try {
             const { blackListIp, description } = req.body;
             const existBlacklist = await Blacklist.findOne({ ipAddress: blackListIp });
-            if(existBlacklist) 
-            {
+            if (existBlacklist) {
                 res.status(409).send('Ip already exist');
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`POST /addBlacklist`,{ endpoint: `/addBlacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`POST /addBlacklist`, { endpoint: `/addBlacklist`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 return;
             }
             const newBlacklistIp = await Blacklist.create({
                 ipAddress: blackListIp,
                 description: description
             });
-            if (!newBlacklistIp) 
-            {
+            if (!newBlacklistIp) {
                 res.status(500).send("Interal server error");
             }
-            res.status(200).json({ message:'Ip added successfully', blackListIp });
-            let resTime:any = new Date().getTime() - time;
-            logger.http(`POST /addblacklist`,{ endpoint: `/addblacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+            res.status(200).json({ message: 'Ip added successfully', blackListIp });
+            let resTime: any = new Date().getTime() - time;
+            logger.http(`POST /addblacklist`, { endpoint: `/addblacklist`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
             return { newBlacklistIp }
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     *   get all blacklisted ips
     */
-    public async allBlacklist(req: express.Request, res: express.Response): Promise<any>
-    {
-        let time: any = new Date().getTime();  
+    public async allBlacklist(req: express.Request, res: express.Response): Promise<any> {
+        let time: any = new Date().getTime();
         let pagination: IPagination = await this.paginate(req, res);
-        try 
-        {   
+        try {
             await Blacklist.find()
-            .skip((pagination.page-1)*pagination.page)
-            .limit(pagination.pageSize)
-            .exec((er:any, result:any) => {
-                res.status(200).json(result);
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /blacklist`,{ endpoint: `/blacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-            });
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+                .skip((pagination.page - 1) * pagination.page)
+                .limit(pagination.pageSize)
+                .exec((er: any, result: any) => {
+                    res.status(200).json(result);
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`GET /blacklist`, { endpoint: `/blacklist`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                });
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     *   Add blacklist ip address to database
     */
-    public async deleteBlacklist(req: express.Request, res: express.Response): Promise<any>
-    {
-        let time: any = new Date().getTime();        
-        let deletedIps:any = [];    
-       try 
-        {
-            const ips =  req.body.ips
+    public async deleteBlacklist(req: express.Request, res: express.Response): Promise<any> {
+        let time: any = new Date().getTime();
+        let deletedIps: any = [];
+        try {
+            const ips = req.body.ips
             const len = ips.length
-            for(let i = 0; i < len ;i++)     
-            {      
+            for (let i = 0; i < len; i++) {
                 const { blacklistIp } = ips[i]
-                await Blacklist.findOneAndRemove({ipAddress: blacklistIp}).then((res)=>{
+                await Blacklist.findOneAndRemove({ ipAddress: blacklistIp }).then((res) => {
                     deletedIps.push(res?.ipAddress)
                 })
             }
-            res.status(200).json({ message:'Ip delete successfully', deletedIps});
-            let resTime:any = new Date().getTime() - time;
-            logger.http(`DELETE /deleteblacklist`,{ endpoint: `/deleteblacklist`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+            res.status(200).json({ message: 'Ip delete successfully', deletedIps });
+            let resTime: any = new Date().getTime() - time;
+            logger.http(`DELETE /deleteblacklist`, { endpoint: `/deleteblacklist`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
 
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
     * search access logs
     */
-    public async searchAccessLogs(req: express.Request, res: express.Response): Promise<any>
-        {
-            let time: any = new Date().getTime();
-            let pagination: IPagination = await this.paginate(req, res);
-            let ip = req.query.ip?.toString();
-            let status = req.query.status?.toString();
-            let endpoint = req.query.endpoint?.toString();
-            let from = req.query.from;
-            let to = req.query.to;
-            let conditions = [];
-            try 
-            {   
-                
-                if(ip !== undefined)
+    public async searchAccessLogs(req: express.Request, res: express.Response): Promise<any> {
+        let time: any = new Date().getTime();
+        let pagination: IPagination = await this.paginate(req, res);
+        let ip = req.query.ip?.toString();
+        let status = req.query.status?.toString();
+        let endpoint = req.query.endpoint?.toString();
+        let from = req.query.from;
+        let to = req.query.to;
+        let conditions = [];
+        try {
+
+            if (ip !== undefined)
                 conditions.push({ 'meta.RequesterIP': ip })
-                if(status !== undefined)
+            if (status !== undefined)
                 conditions.push({ 'meta.accessStatus': status })
-                if(endpoint !== undefined)
+            if (endpoint !== undefined)
                 conditions.push({ 'meta.endpoint': endpoint })
-                if(from !== undefined && to !==undefined)
-                {
-                    let fromDate = new Date(Number(from) * 1000);
-                    let toDate = new Date(Number(to) * 1000);
-                    
-                    conditions.push({ timestamp: { $gte: fromDate } } )
-                    conditions.push({ timestamp: { $lte: toDate } } )
-                }
-                let final_condition = conditions.length ? {$and: conditions} : {};
-                let db = Logger.dbInstance
-                db =  db.connection.db          
-                await db.collection('access_logs').find(final_condition)
-                        .skip((pagination.page-1)*pagination.page)
-                        .limit(pagination.pageSize)
-                        .toArray((er:any, result:any) => {
-            
-                            
-                    res.status(200).json(result);
-                    let resTime:any = new Date().getTime() - time;
-                    logger.http(`GET /accesslogs/search`,{ endpoint: `/accesslogs/search`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-                });
-            } 
-            catch (error) 
-            {
-                logger.error('Error', error);          
+            if (from !== undefined && to !== undefined) {
+                let fromDate = new Date(Number(from) * 1000);
+                let toDate = new Date(Number(to) * 1000);
+
+                conditions.push({ timestamp: { $gte: fromDate } })
+                conditions.push({ timestamp: { $lte: toDate } })
             }
-        };
+            let final_condition = conditions.length ? { $and: conditions } : {};
+            let db = Logger.dbInstance
+            db = db.connection.db
+            await db.collection('access_logs').find(final_condition)
+                .skip((pagination.page - 1) * pagination.page)
+                .limit(pagination.pageSize)
+                .toArray((er: any, result: any) => {
+
+
+                    res.status(200).json(result);
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`GET /accesslogs/search`, { endpoint: `/accesslogs/search`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                });
+        }
+        catch (error) {
+            logger.error('Error', error);
+        }
+    };
     /**
     * search operation logs
     */
-    public async searchOperationLogs(req: express.Request, res: express.Response): Promise<any>
-    {
+    public async searchOperationLogs(req: express.Request, res: express.Response): Promise<any> {
         let time: any = new Date().getTime();
         let pagination: IPagination = await this.paginate(req, res);
         let type = req.query.type?.toString();
@@ -2052,40 +1992,37 @@ class Stoa extends WebService {
         let from = req.query.from?.toString();
         let to = req.query.to?.toString();
         let conditions = [];
-        
-        try 
-        {   
-            
-            if(type !== undefined)
-            conditions.push({ 'meta.operation': type })
-            if(height !== undefined)
-            conditions.push({ 'meta.height': height })
-            if(status !== undefined)
-            conditions.push({ 'meta.success': status })
-            if(from !== undefined && to !==undefined)
-            {
-                let fromDate = new Date(Number(from) *1000 );
-                let toDate = new Date(Number(to)* 1000);                    
-                conditions.push({ timestamp: { $gte: fromDate } } )
-                conditions.push({ timestamp: { $lte: toDate } } )
+
+        try {
+
+            if (type !== undefined)
+                conditions.push({ 'meta.operation': type })
+            if (height !== undefined)
+                conditions.push({ 'meta.height': height })
+            if (status !== undefined)
+                conditions.push({ 'meta.success': status })
+            if (from !== undefined && to !== undefined) {
+                let fromDate = new Date(Number(from) * 1000);
+                let toDate = new Date(Number(to) * 1000);
+                conditions.push({ timestamp: { $gte: fromDate } })
+                conditions.push({ timestamp: { $lte: toDate } })
             }
-            let final_condition = conditions.length ? {$and: conditions} : {};
+            let final_condition = conditions.length ? { $and: conditions } : {};
             let db = Logger.dbInstance
-            db =  db.connection.db        
+            db = db.connection.db
 
             await db.collection('operation_logs').find(final_condition)
-                    .skip((pagination.page-1)*pagination.page)
-                    .limit(pagination.pageSize)
-                    .toArray((er:any, result:any) => {
-           
-                res.status(200).json(result);
-                let resTime:any = new Date().getTime() - time;
-                logger.http(`GET /operationlogs/search`,{ endpoint: `/operationlogs/search`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-            });
-        } 
-        catch (error) 
-        {
-            logger.error('Error', error);       
+                .skip((pagination.page - 1) * pagination.page)
+                .limit(pagination.pageSize)
+                .toArray((er: any, result: any) => {
+
+                    res.status(200).json(result);
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`GET /operationlogs/search`, { endpoint: `/operationlogs/search`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                });
+        }
+        catch (error) {
+            logger.error('Error', error);
         }
     };
     /**
@@ -2094,26 +2031,24 @@ class Stoa extends WebService {
       * @param res
       * @returns Returns Coin market cap.
     */
-    private async getCoinMarketCap(req: express.Request, res: express.Response) 
-    {
+    private async getCoinMarketCap(req: express.Request, res: express.Response) {
         let time: any = new Date().getTime();
-         this.ledger_storage.getCoinMarketcap().then((rows:any)=>{
-             if(rows[0])
-             {
-              res.status(200).send(rows[0]);
-              let resTime:any = new Date().getTime() - time;
-              logger.http(`/coinmarketcap`,{ endpoint: `/coinmarketcap`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
-              return
-             }
-             else{
-                 return res.status(204).send(`The data does not exist.`)
-             }
+        this.ledger_storage.getCoinMarketcap().then((rows: any) => {
+            if (rows[0]) {
+                res.status(200).send(rows[0]);
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`/coinmarketcap`, { endpoint: `/coinmarketcap`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                return
+            }
+            else {
+                return res.status(204).send(`The data does not exist.`)
+            }
 
-         }).catch((err)=>{
-              logger.error("Failed to data lookup to the DB: " + err,
-                    { operation: Operation.db, height: HeightManager.height.toString(), success: false });
-                res.status(500).send("Failed to data lookup");
-            });
+        }).catch((err) => {
+            logger.error("Failed to data lookup to the DB: " + err,
+                { operation: Operation.db, height: HeightManager.height.toString(), success: false });
+            res.status(500).send("Failed to data lookup");
+        });
     }
 
     /**
@@ -2402,8 +2337,8 @@ class Stoa extends WebService {
                         });
                     });
                     res.status(200).send(marketCapChart);
-                    let resTime:any = new Date().getTime() - time;
-                    logger.http(`/coinmarketchart`,{ endpoint: `/coinmarketchart`,RequesterIP:req.ip, protocol:req.protocol, httpStatusCode: res.statusCode, userAgent:req.headers['user-agent'], accessStatus:res.statusCode !== 200?'Denied':'Granted', bytesTransmitted:res.socket?.bytesWritten, responseTime:resTime});
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`/coinmarketchart`, { endpoint: `/coinmarketchart`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 }
             })
             .catch((err) => {

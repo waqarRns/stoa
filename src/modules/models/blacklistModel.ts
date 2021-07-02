@@ -3,10 +3,9 @@ import mongoose, { Document } from 'mongoose';
 /**
 * Blacklist interface 
 */
-interface IBlacklist 
-{
-  ipAddress:string,
-  description: string
+interface IBlacklist {
+    ipAddress: string,
+    description: string
 }
 /**
 * Mongoose schema for blacklist Ip
@@ -19,7 +18,7 @@ const blacklistSchema = new mongoose.Schema<IBlacklist>(
         },
         description: {
             type: String,
-            default:null
+            default: null
         }
     },
     {

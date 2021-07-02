@@ -28,18 +28,17 @@ switch (process.env.NODE_ENV) {
     case "production":
     default:
         // Read the config file and potentially use both
-        
+
         logger.add(Logger.defaultFileTransport(config.logging.folder));
         if (config.logging.console)
             logger.add(Logger.defaultConsoleTransport());
-        if (config.logging.database)
-        {
-           Logger.BuildDbConnection(config.logging.mongodb_url).then((connection)=>{
-                 if(connection)
-                 logger.add(Logger.defaultDatabaseTransport(config.logging.mongodb_url));  
-                 sgMail.setApiKey(config.logging.sendgrid_api_key)
-           })
-        }  
+        if (config.logging.database) {
+            Logger.BuildDbConnection(config.logging.mongodb_url).then((connection) => {
+                if (connection)
+                    logger.add(Logger.defaultDatabaseTransport(config.logging.mongodb_url));
+                sgMail.setApiKey(config.logging.sendgrid_api_key)
+            })
+        }
 }
 logger.transports.forEach((tp) => {
     tp.level = config.logging.level;

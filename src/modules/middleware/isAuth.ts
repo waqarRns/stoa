@@ -8,30 +8,30 @@ import User from '../models/userModel'
  * @param next next function of express, passes control to the next route
  */
 
- const isAuth = async (req: Request, res: Response, next: NextFunction) => {
-    let token
-  
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith('Bearer')
-    ) {
-      try {
-        token = req.headers.authorization.split(' ')[1]
-  
-        const decoded:any = jwt.verify(token, 'my secret')
-  
-        req.body.email = decoded.email
-  
-        next()
-      } catch (error) {
-        res.status(401)
-        res.send('Not authorized, token failed')
-      }
-    }
-    if (!token) {
+const isAuth = async (req: Request, res: Response, next: NextFunction) => {
+  let token
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      token = req.headers.authorization.split(' ')[1]
+
+      const decoded: any = jwt.verify(token, 'my secret')
+
+      req.body.email = decoded.email
+
+      next()
+    } catch (error) {
       res.status(401)
-      res.send('Not authorized, no token')
+      res.send('Not authorized, token failed')
     }
   }
+  if (!token) {
+    res.status(401)
+    res.send('Not authorized, no token')
+  }
+}
 
 export default isAuth;
