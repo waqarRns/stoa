@@ -12,7 +12,6 @@ interface IUser {
   resetPasswordExpires: any,
   isVerified: boolean,
   generatePasswordReset(): any;
-  comparePassword(password: string, cb: Function): any;
 }
 /**
 * Mongoose schema for Admin user 
@@ -67,12 +66,6 @@ userSchema.pre('save', function (next) {
 userSchema.methods.generatePasswordReset = function () {
   this.resetPasswordToken = crypto.randomBytes(20).toString('hex');
   this.resetPasswordExpires = Date.now() + 3600000; //expires in an hour
-};
-userSchema.methods.comparePassword = function (candidatePassword, cb) {
-  bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
-    if (err) return cb(err);
-    cb(null, isMatch);
-  });
 };
 const User = mongoose.model<IUser & Document>('User', userSchema);
 export default User;

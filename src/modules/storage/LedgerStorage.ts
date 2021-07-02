@@ -38,11 +38,15 @@ import {
 } from "../../Types";
 import { IDatabaseConfig } from "../common/Config";
 import { FeeManager } from "../common/FeeManager";
-import { logger } from "../common/Logger";
+import { Logger, logger } from "../common/Logger";
 import { Storages } from "./Storages";
 import { TransactionPool } from "./TransactionPool";
-
+import User from '../models/userModel'
+import Blacklist from '../models/blacklistModel'
+import generateToken from '../common/generateToken'
 import JSBI from "jsbi";
+import bcrypt from 'bcrypt';
+import { ObjectID } from "mongodb";
 
 /**
  * The class that inserts and reads the ledger into the database.
@@ -2494,7 +2498,161 @@ export class LedgerStorage extends Storages {
             ) Tx;`;
         return this.query(sql, [height.value.toString(), address, height.value.toString(), address]);
     }
+    /**
+     * Register new user to the admin penal
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the records
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public async registerUser(name: string, email: string, password: string): Promise<any> {
+        let res: any = {};
+        const exisitngUser = await User.findOne({ email: email });
+        if (exisitngUser) {
+            res = true;
+            return res;
+        }
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        const userRecord = await User.create({
+            name: name,
+            email: email,
+            password: hashedPassword
+        });
+        if (!userRecord) {
+            return;
+        }
+        return res = {
+            message: 'User created successfully',
+            email: email
+        }
 
+    }
+    /**
+     * Register new user to the admin penal
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the records
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public async signInUser(email: string, password: string): Promise<any> {
+        let res: any = {};
+        const user = await User.findOne({ email: email });
+
+        if (!user) {
+            return;
+        }
+        console.log(user);
+
+        const matchedPassword: boolean = bcrypt.compareSync(password, user.password);
+        console.log(password);
+        console.log(matchedPassword);
+
+        if (!matchedPassword) {
+            return;
+        }
+        const token: string = generateToken(email);
+        res = {
+            message: 'Login successfully',
+            token: token
+        }
+        return res;
+    }
+    /**
+     * Register new user to the admin penal
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the records
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public async operationLogs(limit: number, page: number) {
+        let res: any[] = [];
+        let db = Logger.dbInstance.connection.db
+        let obj = db.collection('operation_logs')
+            .find()
+            .skip((page - 1) * limit)
+            .limit(limit)
+        res = await obj.toArray();
+        return res;
+    }
+    /**
+     * Register new user to the admin penal
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the records
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public async accsessLogs(limit: number, page: number): Promise<any> {
+        let res: any[] = [];
+        let db = Logger.dbInstance.connection.db
+        let obj = db.collection('access_logs').find().skip((page - 1) * limit).limit(limit)
+        res = await obj.toArray();
+        return res;
+    }
+    /**
+     * Register new user to the admin penal
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the records
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public async operationLog(id: ObjectID): Promise<any> {
+        let db = Logger.dbInstance.connection.db
+        let data = await db.collection('operation_logs').findOne({ _id: id })
+        return data;
+    }
+    /**
+ * Register new user to the admin penal
+ * @returns Returns the Promise. If it is finished successfully the `.then`
+ * of the returned Promise is called with the records
+ * and if an error occurs the `.catch` is called with an error.
+ */
+    public async addBlacklist(ip: string, desc: string): Promise<any> {
+        let res: any = {};
+        const existBlacklist = await Blacklist.findOne({ ipAddress: ip });
+        if (existBlacklist) {
+            res = true;
+            return res;
+        }
+
+        const newBlacklistIp = await Blacklist.create({
+            ipAddress: ip,
+            description: desc
+        });
+        if (!newBlacklistIp) {
+            return;
+        }
+        return res = {
+            message: 'User created successfully',
+            ip: ip
+        }
+
+    }
+    /**
+* Register new user to the admin penal
+* @returns Returns the Promise. If it is finished successfully the `.then`
+* of the returned Promise is called with the records
+* and if an error occurs the `.catch` is called with an error.
+*/
+    public async getAllBlacklistIps(limit: number, page: number): Promise<any> {
+        let data = await Blacklist.find()
+            .skip((page - 1) * limit)
+            .limit(limit)
+        return data
+    }
+    /**
+* Register new user to the admin penal
+* @returns Returns the Promise. If it is finished successfully the `.then`
+* of the returned Promise is called with the records
+* and if an error occurs the `.catch` is called with an error.
+*/
+    public async deleteBlacklist(ip: any[]): Promise<any> {
+        let deletedIps: any = [];
+        if (ip) {
+            for (let i = 0; i < ip.length; i++) {
+                await Blacklist.findOneAndRemove({ ipAddress: ip[i].blacklistIp }).then((res) => {
+                    deletedIps.push(res?.ipAddress)
+                })
+            }
+        return deletedIps;
+        }else{
+            return
+        }
+    }
     /**
      * Get BOA Holder List.
      * @param limit Maximum record count that can be obtained from one query
