@@ -854,6 +854,7 @@ describe('Test Admin API', async () => {
 
             let url = uri.toString();
             let result = await client.get(url);
+
             assert.strictEqual(result.status, 200);
             assert.strictEqual(result.data.message, 'Token verified');
         })
@@ -871,9 +872,9 @@ describe('Test Admin API', async () => {
             let data = { password: '54321' }
             let url = uri.toString();
             let result = await client.post(url, data);
+
             assert.strictEqual(result.status, 200);
             assert.strictEqual(result.data.message, 'Your password has been updated.');
-
         })
     });
     it('Test add blacklist ip API', async () => {
@@ -893,7 +894,7 @@ describe('Test Admin API', async () => {
         let res = await client.post(url, data)
 
         assert.strictEqual(res.status, 200);
-        assert.strictEqual(res.data.blackListIp, expected.ipAddress);
+        assert.strictEqual(res.data.ip, expected.ipAddress);
 
     });
     it('Test all blacklist ip API', async () => {
@@ -907,6 +908,7 @@ describe('Test Admin API', async () => {
         let url = uri.toString();
 
         let res = await client.get(url)
+
         assert.strictEqual(res.status, 200);
         assert.strictEqual(res.data[0].ipAddress, data.ips[0].blacklistIp);
     });
@@ -920,13 +922,10 @@ describe('Test Admin API', async () => {
             ips: [{ blacklistIp: '192.168.0.0' }]
         }
         let url = uri.toString();
-
         let res = await client.post(url, data)
 
         assert.strictEqual(res.status, 200);
-
-        assert.strictEqual(res.data.deletedIps[0], data.ips[0].blacklistIp);
-
+        assert.strictEqual(res.data.data[0], data.ips[0].blacklistIp);
     });
     it('Test operation logs API', async () => {
         let uri = URI(host)

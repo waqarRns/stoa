@@ -4,7 +4,7 @@
     "description": "API server for Agora",
     "main": "src/main.js",
     "scripts": {
-        "test": "cross-env NODE_ENV=test mocha --exit -r ts-node/register tests/**/*.test.ts --timeout 10000",
+        "test": "cross-env NODE_ENV=test mocha --exit -r ts-node/register tests/Boascan.test.ts --timeout 10000",
         "debug": "cross-env NODE_ENV=development mocha -r ts-node/register tests/**/*.test.ts",
         "start": "cross-env NODE_ENV=production ts-node src/main.ts",
         "convert": "ts-node .npm/convert-stoa-sample-data/convert-blocks.ts .npm/convert-stoa-sample-data/old/sample.json .npm/convert-stoa-sample-data/old/sample_utxo.json",
@@ -24,6 +24,7 @@
         "@ctrl/ts-base32": "^1.2.4",
         "@sendgrid/mail": "^7.4.5",
         "@types/app-root-path": "^1.2.4",
+        "@types/bcrypt": "^5.0.0",
         "@types/cors": "^2.8.8",
         "@types/mongodb": "^3.6.17",
         "@types/socket.io": "^3.0.2",
@@ -57,7 +58,6 @@
     },
     "devDependencies": {
         "@types/argparse": "^2.0.2",
-        "@types/bcrypt": "^5.0.0",
         "@types/chai": "^4.2.14",
         "@types/coingecko-api": "^1.0.0",
         "@types/crc": "^3.4.0",

@@ -47,22 +47,6 @@ const userSchema = new mongoose.Schema<IUser>(
     timestamps: true,
   }
 )
-userSchema.pre('save', function (next) {
-  const user = this;
-
-  if (!user.isModified('password')) return next();
-
-  bcrypt.genSalt(10, function (err, salt) {
-    if (err) return next(err);
-
-    bcrypt.hash(user.password, salt, function (err, hash) {
-      if (err) return next(err);
-
-      user.password = hash;
-      next();
-    });
-  });
-});
 userSchema.methods.generatePasswordReset = function () {
   this.resetPasswordToken = crypto.randomBytes(20).toString('hex');
   this.resetPasswordExpires = Date.now() + 3600000; //expires in an hour
