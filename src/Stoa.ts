@@ -273,7 +273,6 @@ class Stoa extends WebService {
                 if (!rows.length) {
                     if (height !== null) res.status(400).send("No validator exists for block height.");
                     else res.status(503).send("Stoa is currently unavailable.");
-
                     return;
                 }
 
@@ -499,8 +498,6 @@ class Stoa extends WebService {
         let time: any = new Date().getTime();
         let size: string = req.params.tx_size.toString();
 
-        logger.http(`GET /transaction/fees/${size}}`);
-
         if (!Utils.isPositiveInteger(size)) {
             res.status(400).send(`Invalid value for parameter 'tx_size': ${size}`);
             return;
@@ -662,14 +659,13 @@ class Stoa extends WebService {
      * Returns UTXO's information about the UTXO hash array.
      */
     private getUTXOs(req: express.Request, res: express.Response) {
+        let time: any = new Date().getTime();
         if (req.body.utxos === undefined) {
             res.status(400).send({
                 statusMessage: "Missing 'utxos' object in body",
             });
             return;
         }
-
-        logger.http(`POST /utxos utxos=${req.body.utxos.toString()}`);
 
         let utxos_hash: Array<Hash>;
         try {
@@ -696,6 +692,9 @@ class Stoa extends WebService {
                     };
                     utxo_array.push(utxo);
                 }
+                let resTime: any = new Date().getTime() - time;
+                logger.http(`POST /utxos utxos=${req.body.utxos.toString()}`,
+                    { endpoint: `utxos utxos`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                 res.status(200).send(JSON.stringify(utxo_array));
             })
             .catch((err) => {
@@ -1219,8 +1218,10 @@ class Stoa extends WebService {
                         result: false,
                         message: "Transaction does not exist in block",
                     };
+                    let resTime: any = new Date().getTime() - time;
+                    logger.http(`GET /spv/${hash}`,
+                        { endpoint: `/spv`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                     res.status(200).send(JSON.stringify(status));
-                    return;
                 }
                 this.agora
                     .getMerklePath(rows[0].height, tx_hash)
@@ -1237,16 +1238,19 @@ class Stoa extends WebService {
                                 result: true,
                                 message: "Success",
                             };
+                            let resTime: any = new Date().getTime() - time;
+                            logger.http(`GET /spv/${hash}`,
+                                { endpoint: `/spv`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                             res.status(200).send(JSON.stringify(status));
                         } else {
                             let status: ISPVStatus = {
                                 result: false,
                                 message: "Verification failed",
                             };
-                            res.status(200).send(JSON.stringify(status));
                             let resTime: any = new Date().getTime() - time;
                             logger.http(`GET /spv/${hash}`,
                                 { endpoint: `/spv`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                            res.status(200).send(JSON.stringify(status));
                         }
                     })
                     .catch((error) => {
@@ -1254,6 +1258,9 @@ class Stoa extends WebService {
                             result: false,
                             message: error.message,
                         };
+                        let resTime: any = new Date().getTime() - time;
+                        logger.http(`GET /spv/${hash}`,
+                            { endpoint: `/spv`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
                         res.status(200).send(JSON.stringify(status));
                     });
             })
@@ -1296,11 +1303,10 @@ class Stoa extends WebService {
         this.pending = this.pending.then(() => {
             return this.task({ type: "block", data: req.body.block });
         });
-
-        res.status(200).send();
         let resTime: any = new Date().getTime() - time;
         logger.http(`POST /block_externalized=${req.body.block.toString()}`,
             { endpoint: `/block_externalized`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+        res.status(200).send();
     }
 
     /**
@@ -1325,11 +1331,10 @@ class Stoa extends WebService {
         this.pending = this.pending.then(() => {
             return this.task({ type: "pre_image", data: req.body.preimage });
         });
-
-        res.status(200).send();
         let resTime: any = new Date().getTime() - time;
         logger.http(`POST /preimage_received preimage=${req.body.preimage.toString()}`,
             { endpoint: `/preimage_received preimage`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+        res.status(200).send();
     }
 
     /**
@@ -1382,11 +1387,10 @@ class Stoa extends WebService {
         this.pending = this.pending.then(() => {
             return this.task({ type: "transaction", data: req.body.tx });
         });
-
-        res.status(200).send();
         let resTime: any = new Date().getTime() - time;
         logger.http(`POST /transaction_received tx=${req.body.tx.toString()}`,
             { endpoint: `/transaction_received`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+        res.status(200).send();
     }
 
     /**
@@ -1409,7 +1413,6 @@ class Stoa extends WebService {
                     res.status(204).send(`No pending transactions. address': (${address})`);
                     return;
                 }
-
                 let pending_array: Array<IPendingTxs> = [];
                 for (const row of rows) {
                     let tx = {
@@ -1422,10 +1425,10 @@ class Stoa extends WebService {
                     };
                     pending_array.push(tx);
                 }
-                res.status(200).send(JSON.stringify(pending_array));
                 let resTime: any = new Date().getTime() - time;
                 logger.http(`GET /wallet/transactions/pending/${address}`,
                     { endpoint: `/wallet/transactions/pending`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                res.status(200).send(JSON.stringify(pending_array));
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -1471,9 +1474,9 @@ class Stoa extends WebService {
                     merkle_root: new Hash(rows[0].merkle_root, Endian.Little).toString(),
                     time_stamp: rows[0].time_stamp,
                 };
-                res.status(200).send(JSON.stringify(info));
                 let resTime: any = new Date().getTime() - time;
                 logger.http(height ? `GET /wallet/blocks/header/height=${height?.toString()}` : `/wallet/blocks/header`, { endpoint: `/wallet/blocks/header`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                res.status(200).send(JSON.stringify(info));
             })
             .catch((err) => {
                 logger.error("Failed to data lookup to the DB: " + err, {
@@ -1499,10 +1502,10 @@ class Stoa extends WebService {
                     res.status(400).send(`The block height not found.`);
                 }
                 else {
-                    res.status(200).send(JSON.stringify(row));
                     let resTime: any = new Date().getTime() - time;
                     logger.http(`GET /block_height`,
                         { endpoint: '/block_height', RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
+                    res.status(200).send(JSON.stringify(row));
                 }
 
             })
@@ -1592,11 +1595,10 @@ class Stoa extends WebService {
                         time_stamp: row.time_stamp,
                     });
                 }
-                res.status(200).send(JSON.stringify(block_list));
                 let resTime: any = new Date().getTime() - time;
                 logger.http(`GET /latest-blocks`,
                     { endpoint: `/latest-blocks`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
-                return
+                return res.status(200).send(JSON.stringify(block_list));
             }
         });
     }
@@ -1612,8 +1614,7 @@ class Stoa extends WebService {
         let pagination: IPagination = await this.paginate(req, res);
         this.ledger_storage.getLatestTransactions(pagination.pageSize, pagination.page).then((data: any) => {
             if (data === undefined) {
-                res.status(500).send("Failed to data lookup");
-                return;
+                return res.status(500).send("Failed to data lookup");
             } else if (data.length === 0) {
                 return res.status(204).send(`The data does not exist.`);
             } else {
@@ -1631,11 +1632,10 @@ class Stoa extends WebService {
                         }
                     )
                 }
-                res.status(200).send(JSON.stringify(transactionList));
                 let resTime: any = new Date().getTime() - time;
                 logger.http(`GET /latest-transactions`,
                     { endpoint: `/latest-transactions`, RequesterIP: req.ip, protocol: req.protocol, httpStatusCode: res.statusCode, userAgent: req.headers['user-agent'], accessStatus: res.statusCode !== 200 ? 'Denied' : 'Granted', bytesTransmitted: res.socket?.bytesWritten, responseTime: resTime });
-                return
+                return res.status(200).send(JSON.stringify(transactionList));
             }
         })
     }
@@ -1851,8 +1851,6 @@ class Stoa extends WebService {
         let host = req.headers.host;
         try {
             this.ledger_storage.recover(email, host).then((data) => {
-                console.log(data);
-
                 if (data === false) {
                     let resTime: any = new Date().getTime() - time;
                     logger.http(`POST /recover`,
