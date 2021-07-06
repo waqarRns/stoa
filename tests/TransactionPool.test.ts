@@ -29,6 +29,7 @@ import { IDatabaseConfig } from "../src/modules/common/Config";
 import { LedgerStorage } from "../src/modules/storage/LedgerStorage";
 import { TransactionPool } from "../src/modules/storage/TransactionPool";
 import { MockDBConfig } from "./TestConfig";
+import { Logger } from '../src/modules/common/Logger';
 
 import { CoinGeckoMarket } from "../src/modules/coinmarket/CoinGeckoMarket";
 import { CoinMarketService } from "../src/modules/service/CoinMarketService";
@@ -78,7 +79,7 @@ describe("Test TransactionPool", () => {
                 new TxInput(
                     new Hash(
                         "0x75283072696d82d8bca2fe45471906a26df1dbe0736e41a9f78e02a14e2bfce" +
-                            "d6e0cb671f023626f890f28204556aca217f3023c891fe64b9f4b3450cb3e80ad"
+                        "d6e0cb671f023626f890f28204556aca217f3023c891fe64b9f4b3450cb3e80ad"
                     ),
                     Unlock.fromSignature(new Signature(Buffer.alloc(Signature.Width)))
                 ),
@@ -100,7 +101,7 @@ describe("Test TransactionPool", () => {
                 new TxInput(
                     new Hash(
                         "0x75283072696d82d8bca2fe45471906a26df1dbe0736e41a9f78e02a14e2bfce" +
-                            "d6e0cb671f023626f890f28204556aca217f3023c891fe64b9f4b3450cb3e80ad"
+                        "d6e0cb671f023626f890f28204556aca217f3023c891fe64b9f4b3450cb3e80ad"
                     ),
                     Unlock.fromSignature(new Signature(Buffer.alloc(Signature.Width)))
                 ),
@@ -127,14 +128,14 @@ describe("Test TransactionPool", () => {
                 new TxInput(
                     new Hash(
                         "0x75283072696d82d8bca2fe45471906a26df1dbe0736e41a9f78e02a14e2bfce" +
-                            "d6e0cb671f023626f890f28204556aca217f3023c891fe64b9f4b3450cb3e80ad"
+                        "d6e0cb671f023626f890f28204556aca217f3023c891fe64b9f4b3450cb3e80ad"
                     ),
                     Unlock.fromSignature(new Signature(Buffer.alloc(Signature.Width)))
                 ),
                 new TxInput(
                     new Hash(
                         "0x6fbcdb2573e0f5120f21f1875b6dc281c2eca3646ec2c39d703623d89b0eb83" +
-                            "cd4b12b73f18db6bc6e8cbcaeb100741f6384c498ff4e61dd189e728d80fb9673"
+                        "cd4b12b73f18db6bc6e8cbcaeb100741f6384c498ff4e61dd189e728d80fb9673"
                     ),
                     Unlock.fromSignature(new Signature(Buffer.alloc(Signature.Width)))
                 ),
@@ -156,7 +157,7 @@ describe("Test TransactionPool", () => {
                 new TxInput(
                     new Hash(
                         "0x75283072696d82d8bca2fe45471906a26df1dbe0736e41a9f78e02a14e2bfce" +
-                            "d6e0cb671f023626f890f28204556aca217f3023c891fe64b9f4b3450cb3e80ad"
+                        "d6e0cb671f023626f890f28204556aca217f3023c891fe64b9f4b3450cb3e80ad"
                     ),
                     Unlock.fromSignature(new Signature(Buffer.alloc(Signature.Width)))
                 ),
@@ -229,6 +230,10 @@ describe("Test of double spending transaction", () => {
         await agora_server.stop();
         await gecko_server.stop();
     });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
+    });
 
     it("Test of the path /block_externalized", async () => {
         let uri = URI(host).port(port).directory("block_externalized");
@@ -276,7 +281,7 @@ describe("Test of double spending transaction", () => {
         assert.strictEqual(
             response.data[0].tx_hash,
             "0xfe9f5b40bcd1dfe68be7aa4a08b65d2a7ea31aac52431bc6dae1a9e3ebe4742" +
-                "25e470aeb36bea739c9c0f094b56fc1f8097bbbbc7721bf99208154ec74801950"
+            "25e470aeb36bea739c9c0f094b56fc1f8097bbbbc7721bf99208154ec74801950"
         );
         assert.strictEqual(response.data[0].address, "boa1xparc00qvv984ck00trwmfxuvqmmlwsxwzf3al0tsq5k2rw6aw427ct37mj");
         assert.strictEqual(response.data[0].amount, "24400000000000");
@@ -303,7 +308,7 @@ describe("Test of double spending transaction", () => {
         assert.strictEqual(
             response.data[0].tx_hash,
             "0x35917fba7333947cfbc086164e81c1ad7b98dc6a4c61822a89f6eb061b29e95" +
-                "6c5c964a2d4b9cce9a2119244e320091b20074351ab288e07f9946b9dcc4735a7"
+            "6c5c964a2d4b9cce9a2119244e320091b20074351ab288e07f9946b9dcc4735a7"
         );
         assert.strictEqual(response.data[0].address, "boa1xqcmmns5swnm03zay5wjplgupe65uw4w0dafzsdsqtwq6gv3h3lcz24a8ch");
         assert.strictEqual(response.data[0].amount, "12199168170440");

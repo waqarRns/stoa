@@ -41,6 +41,7 @@ import {
     TestGeckoServer,
     TestStoa,
 } from "./Utils";
+import { Logger } from '../src/modules/common/Logger';
 
 import * as assert from "assert";
 import { BOASodium } from "boa-sodium-ts";
@@ -98,6 +99,10 @@ describe("Test of Stoa API Server", () => {
         await stoa_server.stop();
         await agora_server.stop();
         await gecko_server.stop();
+    });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
     });
 
     it("Test of the path /block_externalized", async () => {
@@ -339,12 +344,12 @@ describe("Test of Stoa API Server", () => {
         assert.strictEqual(
             response.data.hash,
             "0x5e57db5e2c2effd180f831330ddf2ea2686817b4f14c8ee60700ecb5c4e9130" +
-                "ce5fe1b9785bc2b5cc6c5fd8c1682647b258419cafa637f07f0aa4e88c9a7de9f"
+            "ce5fe1b9785bc2b5cc6c5fd8c1682647b258419cafa637f07f0aa4e88c9a7de9f"
         );
         assert.strictEqual(
             response.data.merkle_root,
             "0x515a30d31fbd031d63f041b92184f32baf00d08e4120da9299bc336c6f980f2" +
-                "245b11e70bb1dcb7c2279ead9dab1c37b62dee8414083ae8346d166cf033cddfb"
+            "245b11e70bb1dcb7c2279ead9dab1c37b62dee8414083ae8346d166cf033cddfb"
         );
         assert.strictEqual(response.data.time_stamp, 1609459800);
 
@@ -355,12 +360,12 @@ describe("Test of Stoa API Server", () => {
         assert.strictEqual(
             response.data.hash,
             "0xfca7a6455549ff1886969228b12dc5db03c67470145ed3e8e318f0c356a364e" +
-                "abbf1eeefc06232cfa7f3cdf3017521ee54b2b4542241650781022552ddc3dc99"
+            "abbf1eeefc06232cfa7f3cdf3017521ee54b2b4542241650781022552ddc3dc99"
         );
         assert.strictEqual(
             response.data.merkle_root,
             "0x67218493be437c25dc5884abdc8ee40e61f0af79aa9af8ab9bd8b0632eaaca2" +
-                "38b4c054f114b046da0d5911b1b205ba540d07c5dc01560beafe564e5f3d101c9"
+            "38b4c054f114b046da0d5911b1b205ba540d07c5dc01560beafe564e5f3d101c9"
         );
         assert.strictEqual(response.data.time_stamp, 1609459200);
     });
@@ -385,7 +390,7 @@ describe("Test of Stoa API Server", () => {
         assert.strictEqual(
             response.data[0].tx_hash,
             "0x35917fba7333947cfbc086164e81c1ad7b98dc6a4c61822a89f6eb061b29e95" +
-                "6c5c964a2d4b9cce9a2119244e320091b20074351ab288e07f9946b9dcc4735a7"
+            "6c5c964a2d4b9cce9a2119244e320091b20074351ab288e07f9946b9dcc4735a7"
         );
         assert.strictEqual(response.data[0].address, "boa1xqcmmns5swnm03zay5wjplgupe65uw4w0dafzsdsqtwq6gv3h3lcz24a8ch");
         assert.strictEqual(response.data[0].amount, "12199168170440");
@@ -744,6 +749,10 @@ describe("Test of the path /utxo", () => {
         await agora_server.stop();
         await gecko_server.stop();
     });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
+    });
 
     it("Store two blocks", async () => {
         let uri = URI(host).port(port).directory("block_externalized");
@@ -894,6 +903,10 @@ describe("Test of the path /utxo for freezing", () => {
         await stoa_server.stop();
         await agora_server.stop();
         await gecko_server.stop();
+    });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
     });
 
     it("Store two blocks", async () => {
@@ -1091,6 +1104,10 @@ describe("Test of the path /merkle_path", () => {
         await stoa_server.stop();
         await agora_server.stop();
         await gecko_server.stop();
+    });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
     });
 
     it("Test of the path /merkle_path", async () => {

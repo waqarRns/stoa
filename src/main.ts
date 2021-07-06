@@ -40,7 +40,7 @@ switch (process.env.NODE_ENV) {
             })
         }
 }
-logger.transports.forEach((tp) => {
+logger.transports.forEach((tp:any) => {
     tp.level = config.logging.level;
 });
 

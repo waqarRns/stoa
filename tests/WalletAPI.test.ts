@@ -24,6 +24,7 @@ import {
     TestGeckoServer,
     TestStoa,
 } from "./Utils";
+import { Logger } from '../src/modules/common/Logger';
 
 import * as assert from "assert";
 import { BOASodium } from "boa-sodium-ts";
@@ -79,6 +80,10 @@ describe("Test of Stoa API for the wallet", () => {
         await stoa_server.stop();
         await gecko_server.stop();
         await agora_server.stop();
+    });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
     });
 
     it("Store blocks", async () => {
@@ -301,6 +306,10 @@ describe("Test of Stoa API for the wallet with `sample_data`", () => {
             await gecko_server.stop();
             return agora_server.stop();
         });
+    });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
     });
 
     it("Store blocks", async () => {

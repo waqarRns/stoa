@@ -17,7 +17,8 @@
 import path from 'path';
 import winston, { config } from 'winston';
 import { MongoDB } from 'winston-mongodb';
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
+import { Config } from './Config';
 const { combine, timestamp, label, printf, metadata, json } = winston.format;
 const logFormat = printf(({ level, message, label, timestamp }) => {
     return `[${label}] ${timestamp} ${level} ${message}`;
@@ -130,11 +131,27 @@ export class Logger {
 
     public static create(): winston.Logger {
         switch (process.env.NODE_ENV) {
-            case "test":
-                return winston.createLogger({
-                    level: "error",
-                    transports: [Logger.defaultConsoleTransport()],
+            case "test": {
+                const config: Config = new Config();
+                config.readFromFile(path.resolve(process.cwd(), "docs/config.example.yaml"));
+                Logger.BuildDbConnection(config.logging.mongodb_url).then((conn) => {
+                    if (conn) {
+            
+                        
+                        return logger.add(Logger.defaultDatabaseTransport(config.logging.mongodb_url))
+                    }
+                    else {
+                        return winston.createLogger({
+                            level: "info",
+                        });
+                    }
                 });
+                return winston.createLogger({
+                    level: "info",
+                });
+                break;
+            }
+
             case "development":
                 return winston.createLogger({
                     level: "debug",
@@ -148,4 +165,4 @@ export class Logger {
     }
 }
 
-export const logger: winston.Logger = Logger.create();
+export const logger: any = Logger.create();

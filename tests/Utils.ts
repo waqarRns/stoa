@@ -33,7 +33,6 @@ import {
 import { FullNodeAPI } from "../src/modules/agora/AgoraClient";
 import { IDatabaseConfig } from "../src/modules/common/Config";
 import Stoa from "../src/Stoa";
-
 import JSBI from "jsbi";
 import { CoinMarketService } from "../src/modules/service/CoinMarketService";
 import User from '../src/modules/models/userModel'
@@ -458,15 +457,14 @@ export function createBlock(prev_block: Block, txs: Array<Transaction>): Block {
 * Send mail
 * @param email email address of the receiver
 */
-export async function recover (email:string): Promise<any>
-{  
-  
-    const user = await User.findOne({email: email})
-    if(!user)
-    return ('The email address ' + email + ' is not associated with any account. Double-check your email address and try again.')
+export async function recover(email: string): Promise<any> {
+
+    const user = await User.findOne({ email: email })
+    if (!user)
+        return ('The email address ' + email + ' is not associated with any account. Double-check your email address and try again.')
     user.generatePasswordReset();
     const token = user.resetPasswordToken;
     await user.save()
-    return({message:'Email sent successfully', token })
-  
+    return ({ message: 'Email sent successfully', token })
+
 }

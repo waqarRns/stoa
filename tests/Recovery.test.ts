@@ -20,6 +20,7 @@ import { BOASodium } from "boa-sodium-ts";
 import express from "express";
 import URI from "urijs";
 import { URL } from "url";
+import { Logger } from '../src/modules/common/Logger';
 import { CoinGeckoMarket } from "../src/modules/coinmarket/CoinGeckoMarket";
 import { IDatabaseConfig } from "../src/modules/common/Config";
 import { CoinMarketService } from "../src/modules/service/CoinMarketService";
@@ -111,6 +112,10 @@ describe("Test of Recovery", () => {
         await stoa_server.ledger_storage.dropTestDB(testDBConfig.database);
         await stoa_server.stop();
         await gecko_server.stop();
+    });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
     });
     it("Test `getBlocksFrom`", async () => {
         let agora_client = new AgoraClient(agora_addr);

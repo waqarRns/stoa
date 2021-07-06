@@ -21,7 +21,6 @@ import { IDatabaseConfig } from "../src/modules/common/Config";
 import { CoinMarketService } from "../src/modules/service/CoinMarketService";
 import { IMarketCap } from "../src/Types";
 import { MockDBConfig } from "./TestConfig";
-import { Config } from '../src/modules/common/Config';
 import { Logger } from '../src/modules/common/Logger';
 import {
     market_cap_history_sample_data,
@@ -84,6 +83,10 @@ describe("Test of Stoa API Server", () => {
         await stoa_server.stop();
         await gecko_server.stop();
         await agora_server.stop();
+    });
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
     });
 
     it("Test of the path /latest-blocks", async () => {
@@ -765,8 +768,6 @@ describe('Test Admin API', async () => {
     let gecko_server: TestGeckoServer;
     let gecko_market: CoinGeckoMarket;
     let coinMarketService: CoinMarketService;
-    let config: Config = new Config();
-    var conn: any;
 
     before('Wait for the package libsodium to finish loading', async () => {
         SodiumHelper.assign(new BOASodium());
@@ -803,8 +804,9 @@ describe('Test Admin API', async () => {
         await gecko_server.stop();
         await agora_server.stop();
     });
-    before(async () => {
-        conn = await Logger.BuildDbConnection(config.logging.mongodb_url)
+    after('Drop mongoDb database', async () => {
+        let conn: any = Logger.dbInstance.connection;
+        await conn.dropDatabase();
     });
     it('Test register API', async () => {
         let uri = URI(host)
