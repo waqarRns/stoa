@@ -12,16 +12,17 @@
 *******************************************************************************/
 
 import * as assert from "assert";
-import { SodiumHelper, ProposalType, JSBI, ProposalData, Hash, PublicKey, Endian } from "boa-sdk-ts";
+import { SodiumHelper, ProposalType, JSBI, ProposalData, Hash, PublicKey, Endian, Height, Validator, hash } from "boa-sdk-ts";
 import { BOASodium } from "boa-sodium-ts";
 import moment from "moment";
 import URI from "urijs";
 import { URL } from "url";
 import { CoinGeckoMarket } from "../src/modules/coinmarket/CoinGeckoMarket";
 import { IDatabaseConfig } from "../src/modules/common/Config";
+import { ProposalStatus } from "../src/modules/common/enum";
 import { CoinMarketService } from "../src/modules/service/CoinMarketService";
 import { VoteraService } from "../src/modules/service/VoteraService";
-import { IMarketCap, IMetaData, IPendingProposal } from "../src/Types";
+import { IMarketCap, IMetaData, IPendingProposal, IProposal, IValidatorByBlock } from "../src/Types";
 import { MockDBConfig } from "./TestConfig";
 import {
     FakeBlacklistMiddleware,
@@ -37,10 +38,12 @@ import {
     TestStoa,
     delay,
     TestVoteraServer,
+    sample_data5,
+    sample_data6_10,
+    sample_data10_17
 } from "./Utils";
 
 describe("Test of Stoa API Server", () => {
-    const host: string = "http://localhost";
     const agora_addr: URL = new URL("http://localhost:2800");
     const stoa_addr: URL = new URL("http://localhost:3800");
     const stoa_private_addr: URL = new URL("http://localhost:4800");
@@ -102,11 +105,10 @@ describe("Test of Stoa API Server", () => {
     before("Start TestStoa", async () => {
         await stoa_server.start();
         await stoa_server.voteraService?.stop();
-        await stoa_server.voteraService?.start(stoa_server, 1);
+        return;
     });
 
     after("Stop Stoa and Agora server instances", async () => {
-        await stoa_server.voteraService?.stop();
         await stoa_server.ledger_storage.dropTestDB(testDBConfig.database);
         await stoa_server.stop();
         await votera_server.stop();
@@ -893,6 +895,81 @@ describe("Test of Stoa API Server", () => {
         const expected = { block: 0, transaction: 1 };
         assert.deepStrictEqual(response.data, expected);
     });
+});
+
+describe("Test of boascan - Proposal & Vote ", () => {
+    const agora_addr: URL = new URL("http://localhost:2800");
+    const stoa_addr: URL = new URL("http://localhost:3800");
+    const stoa_private_addr: URL = new URL("http://localhost:4800");
+    const votera_addr: URL = new URL("http://127.0.0.1:1337/");
+    let stoa_server: TestStoa;
+    let agora_server: TestAgora;
+    const client = new TestClient();
+    let testDBConfig: IDatabaseConfig;
+    let gecko_server: TestGeckoServer;
+    let gecko_market: CoinGeckoMarket;
+    let coinMarketService: CoinMarketService;
+    let votera_server: TestVoteraServer;
+    let votera_service: VoteraService;
+
+    before("Bypassing middleware check", () => {
+        FakeBlacklistMiddleware.assign();
+    });
+
+    before("Wait for the package libsodium to finish loading", async () => {
+        if (!SodiumHelper.isAssigned()) SodiumHelper.assign(new BOASodium());
+        await SodiumHelper.init();
+    });
+
+    before("Start a fake Agora", () => {
+        return new Promise<void>((resolve, reject) => {
+            agora_server = new TestAgora(agora_addr.port, sample_data, resolve);
+        });
+    });
+
+    before("Start a fake TestCoinGeckoServer", () => {
+        return new Promise<void>(async (resolve, reject) => {
+            gecko_server = new TestGeckoServer("7876", market_cap_sample_data, market_cap_history_sample_data, resolve);
+            gecko_market = new CoinGeckoMarket(gecko_server);
+        });
+    });
+
+    before("Start a fake TestCoinGecko", () => {
+        coinMarketService = new CoinMarketService(gecko_market);
+    });
+
+    before("Start a fake votera Server and Service", () => {
+        return new Promise<void>(async (resolve, reject) => {
+            votera_server = new TestVoteraServer(1337, votera_addr, resolve);
+            votera_service = new VoteraService(votera_addr);
+        });
+    });
+    before("Create TestStoa", () => {
+        testDBConfig = MockDBConfig();
+        stoa_server = new TestStoa(
+            testDBConfig,
+            agora_addr,
+            parseInt(stoa_addr.port, 10),
+            votera_service,
+            coinMarketService
+        );
+        return stoa_server.createStorage();
+    });
+
+    before("Start TestStoa", async () => {
+        await stoa_server.start();
+        await stoa_server.voteraService?.stop();
+        return;
+    });
+
+    after("Stop Stoa and Agora server instances", async () => {
+        await stoa_server.ledger_storage.dropTestDB(testDBConfig.database);
+        await stoa_server.stop();
+        await votera_server.stop();
+        await gecko_server.stop();
+        await agora_server.stop();
+    });
+
     it("Test for writing Proposal fee transactions block", async () => {
         const url = URI(stoa_private_addr).directory("block_externalized").toString();
 
@@ -912,8 +989,11 @@ describe("Test of Stoa API Server", () => {
         const url = URI(stoa_private_addr).directory("block_externalized").toString();
 
         await client.post(url, { block: sample_data4 });
+        await delay(200);
+        await stoa_server.voteraService?.start(stoa_server, 2);
 
         await delay(200);
+        await stoa_server.voteraService?.stop();
 
         //  Verifies that all sent blocks are wrote
         const uri = URI(stoa_addr).directory("/block_height");
@@ -926,17 +1006,17 @@ describe("Test of Stoa API Server", () => {
         let proposal = new ProposalData(
             "Votera",
             ProposalType.Fund,
-            "ID1234567890",
+            "469008972006",
             "Title",
-            JSBI.BigInt(1000),
-            JSBI.BigInt(3026),
+            JSBI.BigInt(5),
+            JSBI.BigInt(10),
             new Hash(Buffer.alloc(Hash.Width)),
             JSBI.BigInt(10000000000000),
             JSBI.BigInt(100000000000),
             JSBI.BigInt(27000000),
             new Hash(Buffer.alloc(Hash.Width)),
-            new PublicKey("boa1xrw66w303s5x05ej9uu6djc54kue29j72kah22xqqcrtqj57ztwm5uh524e"),
-            new PublicKey("boa1xrzwvvw6l6d9k84ansqgs9yrtsetpv44wfn8zm9a7lehuej3ssskxth867s")
+            new PublicKey("boa1xzgenes5cf8xel37fz79gzs49v56znllk7jw7qscjwl5p6a9zxk8zaygm67"),
+            new PublicKey("boa1xrc00kar2yqa3jzve9cm4cvuaa8duazkuwrygmqgpcuf0gqww8ye7ua9lkl")
         );
         let pendingProposal: IPendingProposal = {
             app_name: proposal.app_name,
@@ -955,7 +1035,7 @@ describe("Test of Stoa API Server", () => {
         };
         let data = await votera_service.getMetadata(pendingProposal);
         let expected: IMetaData = {
-            proposal_id: "ID1234567890",
+            proposal_id: "469008972006",
             voting_start_date: moment("2021-07-26").utc().unix(),
             voting_end_date: moment("2021-08-02").utc().unix(),
             voting_fee_hash: new Hash(
@@ -991,17 +1071,16 @@ describe("Test of Stoa API Server", () => {
     });
 
     it("Test for path /proposals", async () => {
-        await delay(500);
         const uri = URI(stoa_addr)
             .directory("/proposals")
         const response = await client.get(uri.toString());
         let expected = {
-            proposal_id: 'ID1234567890',
+            proposal_id: '469008972006',
             proposal_title: 'Title',
             proposal_type: 'Fund',
-            fund_amount: 45161676009963520,
-            vote_start_height: 59395,
-            vote_end_height: 53771,
+            fund_amount: 10000000000000,
+            vote_start_height: 5,
+            vote_end_height: 10,
             proposal_status: 'Ongoing',
             proposal_date: 1627015766,
             proposer_name: 'test',
@@ -1015,21 +1094,21 @@ describe("Test of Stoa API Server", () => {
     it("Test for path /proposal/:proposal_id", async () => {
         const uri = URI(stoa_addr)
             .directory("/proposal")
-            .filename("ID1234567890");
+            .filename("469008972006");
         const response = await client.get(uri.toString());
         let expected = {
             proposal_title: 'Title',
-            proposal_id: 'ID1234567890',
+            proposal_id: '469008972006',
             detail: 'Description Make better world!',
-            proposal_tx_hash: '0x917fba7333947d00cfbc086164e81c1ad7b98dc6a4c61822a89f6eb061b29e956c5c964a2d4b9cce9a2119244e320091b20074351ab288e07f9946b9dcc4735a',
+            proposal_tx_hash: '0xa223b0067fe202923d427438f937a7e0dde87a7387d9dba86f5879d80936f1f3073f69d11189f9942ff9049701baaf5df5c3168683077fbdc458838cbbbd3478',
             fee_tx_hash: '0x8b6a2e1ecc3616ad63c73d606c4019407ebfd06a122519e7bd88d99af92d19d9621323d7c2e68593053a570522b6bc8575d1ee45a74ee38726f297a5ce08e33d',
             proposer_name: 'test',
-            fund_amount: 45161676009963520,
-            proposal_fee: 65432246592471040,
+            fund_amount: 10000000000000,
+            proposal_fee: 100000000000,
             proposal_type: 'Fund',
-            vote_start_height: 59395,
+            vote_start_height: 5,
             voting_start_date: moment('2021-07-26').utc().unix(),
-            vote_end_height: 53771,
+            vote_end_height: 10,
             voting_end_date: moment('2021-08-02').utc().unix(),
             proposal_status: 'Ongoing',
             proposal_date: 1627015766,
@@ -1037,7 +1116,7 @@ describe("Test of Stoa API Server", () => {
             pre_evaluation_end_time: moment("2021-08-18").utc().unix(),
             ave_pre_evaluation_score: 7,
             proposer_address: 'boa1xzgenes5cf8xel37fz79gzs49v56znllk7jw7qscjwl5p6a9zxk8zaygm67',
-            proposal_fee_address: 'boa1xzgenes5cf8xel37fz79gzs49v56znllk7jw7qscjwl5p6a9zxk8zaygm67',
+            proposal_fee_address: 'boa1xrc00kar2yqa3jzve9cm4cvuaa8duazkuwrygmqgpcuf0gqww8ye7ua9lkl',
             urls: [
                 {
                     url: 'https://s3.ap-northeast-2.amazonaws.com/com.kosac.defora.beta.upload-image/BOASCAN_Requirements_Documentation_Version1_0_EN_copy_fb69a8a7d5.pdf'
@@ -1045,5 +1124,190 @@ describe("Test of Stoa API Server", () => {
             ]
         }
         assert.deepStrictEqual(response.data, expected);
+    });
+
+    it("Test for writing voting transactions block", async () => {
+        const url = URI(stoa_private_addr).directory("block_externalized").toString();
+
+        await client.post(url, { block: sample_data5 });
+
+        await delay(200);
+
+        //  Verifies that all sent blocks are wrote
+        const uri = URI(stoa_addr).directory("/block_height");
+        const response = await client.get(uri.toString());
+
+        assert.strictEqual(response.status, 200);
+        assert.strictEqual(response.data, "5");
+    });
+
+    it("Test for getValidatorByBlock() method", async () => {
+        let validators = await stoa_server.ledger_storage.getValidatorsByBlock(new Height('5'));
+        let validator_by_block: IValidatorByBlock[] = [];
+        validators.forEach((m) => {
+            validator_by_block.push({
+                block_height: m.block_height,
+                enrolled_height: m.enrolled_height,
+                address: m.block_height,
+                utxo_key: new Hash(m.utxo_key, Endian.Little).toString(),
+                signed: m.signed,
+                slashed: m.slashed,
+            })
+        });
+        let expected =
+            [
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0xbc953e1953dbbbbae165552c000e99f189df7f3ad2a5c644d2bfcd088cfe47964a17b0ed5c8b174f75aafe284cdaf203b6c970dbb6ca9f72bea6d4b03066a37f',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0x076b50dcc436000112a7723363810f331fb7b7ee786de3ee96c4a79bba8b508bc9c299ca3aa205ed6d0ac317f46613185027007c922381067bc5b90afd82eae0',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0x5f00c49527b3c277920feab20483a430090e9f02d4a221321602bf06a43e6d86c3f5d229446586ef73b1e7bfd447d4ec3f3b811e254b164bd5b8f4030b5f4570',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0x03afc40708de7f303ba77c22839bc96a2c2d8dd190263801419012b2eecd72aecbb12c8954acda1abfaaa2b4f257feda02a87c4ca370dc0e1ebd7f9793c3ba00',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0xca0673a903980915644c236fa1e15ea3215b9a3a9b6048360e0c61e99254185c2e1c4bd429d37ba6935f84b8bd26f58396b8e4952350965cece616b6f1b535d9',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0x7396fb808d729e18dd614eff98c484631f7400b1aebc8c6ebcb68df1732bb1d43cb80e9bd82336709dc3c26e64a3ecc281c26d5b87f1210f12f5e07325dbbc6f',
+                    signed: 1,
+                    slashed: 0
+                }
+            ];
+        assert.deepStrictEqual(validator_by_block, expected)
+    })
+
+    it("Test for Voting Start Trigger", async () => {
+        let result = await stoa_server.ledger_storage.getProposalByStatus(ProposalStatus.VOTING);
+        let data: IProposal[] = [];
+        result.forEach((m) => {
+            data.push({
+                proposal_id: m.proposal_id,
+                app_name: m.app_name,
+                block_height: m.block_height,
+                proposal_type: ProposalType.Fund,
+                proposal_title: m.proposal_title,
+                vote_start_height: m.vote_start_height,
+                vote_end_height: m.vote_end_height,
+                doc_hash: new Hash(m.doc_hash, Endian.Little).toString(),
+                fund_amount: m.fund_amount,
+                proposal_fee: m.proposal_fee,
+                vote_fee: m.vote_fee,
+                proposal_fee_tx_hash: new Hash(m.proposal_fee_tx_hash, Endian.Little).toString(),
+                proposer_address: m.proposer_address,
+                proposal_fee_address: m.proposer_address,
+                proposal_status: m.proposal_status,
+                proposal_result: m.proposal_result,
+                data_collection_status: m.data_collection_status
+            });
+            assert.strictEqual(data[0].proposal_status, 'Voting');
+        })
+    });
+
+    it("Test for Voting End Trigger", async () => {
+        //put block to reach Voting End Height
+        const url = URI(stoa_private_addr).directory("block_externalized").toString();
+
+        await client.post(url, { block: sample_data6_10[0] });
+        await client.post(url, { block: sample_data6_10[1] });
+        await client.post(url, { block: sample_data6_10[2] });
+        await client.post(url, { block: sample_data6_10[3] });
+        await client.post(url, { block: sample_data6_10[4] });
+        await delay(500);
+
+        let data: IProposal[] = [];
+        let result = await stoa_server.ledger_storage.getProposalByStatus(ProposalStatus.COUNTING_VOTES);
+        result.forEach((m) => {
+            data.push({
+                proposal_id: m.proposal_id,
+                app_name: m.app_name,
+                block_height: m.block_height,
+                proposal_type: ProposalType.Fund,
+                proposal_title: m.proposal_title,
+                vote_start_height: m.vote_start_height,
+                vote_end_height: m.vote_end_height,
+                doc_hash: new Hash(m.doc_hash, Endian.Little).toString(),
+                fund_amount: m.fund_amount,
+                proposal_fee: m.proposal_fee,
+                vote_fee: m.vote_fee,
+                proposal_fee_tx_hash: new Hash(m.proposal_fee_tx_hash, Endian.Little).toString(),
+                proposer_address: m.proposer_address,
+                proposal_fee_address: m.proposer_address,
+                proposal_status: m.proposal_status,
+                proposal_result: m.proposal_result,
+                data_collection_status: m.data_collection_status
+            });
+            assert.strictEqual(data[0].proposal_status, 'Counting votes');
+        })
+    });
+    it("Test for putProposalResult", async () => {
+        //put block to reach Voting_end_height + 7
+        const url = URI(stoa_private_addr).directory("block_externalized").toString();
+
+        await client.post(url, { block: sample_data10_17[0] });
+        await client.post(url, { block: sample_data10_17[1] });
+        await client.post(url, { block: sample_data10_17[2] });
+        await client.post(url, { block: sample_data10_17[3] });
+        await client.post(url, { block: sample_data10_17[4] });
+        await client.post(url, { block: sample_data10_17[5] });
+        await client.post(url, { block: sample_data10_17[6] });
+        await delay(500)
+
+        let data: IProposal[] = [];
+        let result = await stoa_server.ledger_storage.getProposalByStatus(ProposalStatus.CLOSED);
+        result.forEach((m) => {
+            data.push({
+                proposal_id: m.proposal_id,
+                app_name: m.app_name,
+                block_height: m.block_height,
+                proposal_type: ProposalType.Fund,
+                proposal_title: m.proposal_title,
+                vote_start_height: m.vote_start_height,
+                vote_end_height: m.vote_end_height,
+                doc_hash: new Hash(m.doc_hash, Endian.Little).toString(),
+                fund_amount: m.fund_amount,
+                proposal_fee: m.proposal_fee,
+                vote_fee: m.vote_fee,
+                proposal_fee_tx_hash: new Hash(m.proposal_fee_tx_hash, Endian.Little).toString(),
+                proposer_address: m.proposer_address,
+                proposal_fee_address: m.proposer_address,
+                proposal_status: m.proposal_status,
+                proposal_result: m.proposal_result,
+                data_collection_status: m.data_collection_status
+            });
+            assert.strictEqual(data[0].proposal_result, 'Rejected');
+            assert.strictEqual(data[0].proposal_status, 'Closed');
+        })
     });
 });
