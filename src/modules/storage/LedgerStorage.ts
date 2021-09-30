@@ -912,8 +912,7 @@ export class LedgerStorage extends Storages {
                 const validators: any[] = await this.getValidatorsAPI(block.header.height, null, conn);
                 for (let idx = 0; idx < block.header.preimages.length; idx++) {
                     try {
-                        if (undefined !== validators[idx] && block.header.preimages[idx] !== new Hash(Buffer.alloc(Hash.Width)))
-                        {
+                        if (undefined !== validators[idx] && block.header.preimages[idx] !== new Hash(Buffer.alloc(Hash.Width))) {
                             await save_preimage(
                                 this,
                                 block.header.height,
@@ -1712,9 +1711,9 @@ export class LedgerStorage extends Storages {
 
                     unlock_height_query = `(
                             SELECT '${JSBI.add(
-                                height.value,
-                                JSBI.BigInt(2016)
-                            ).toString()}' AS unlock_height WHERE EXISTS
+                        height.value,
+                        JSBI.BigInt(2016)
+                    ).toString()}' AS unlock_height WHERE EXISTS
                             (
                                 SELECT
                                     *

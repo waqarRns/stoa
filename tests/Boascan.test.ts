@@ -18,6 +18,7 @@ import URI from "urijs";
 import { URL } from "url";
 import { CoinGeckoMarket } from "../src/modules/coinmarket/CoinGeckoMarket";
 import { IDatabaseConfig } from "../src/modules/common/Config";
+import { ProposalStatus } from "../src/modules/common/enum";
 import { CoinMarketService } from "../src/modules/service/CoinMarketService";
 import { VoteraService } from "../src/modules/service/VoteraService";
 import { IMarketCap, IMetaData, IPendingProposal, IProposal, IValidatorByBlock } from "../src/Types";
@@ -903,6 +904,7 @@ describe("Test of Stoa API Server", () => {
         await delay(200);
         await client.post(url, { block: sample_data5 });
         await delay(200);
+        await stoa_server.voteraService?.stop();
 
 
         //  Verifies that all sent blocks are wrote
@@ -931,4 +933,115 @@ describe("Test of Stoa API Server", () => {
 
         assert.deepStrictEqual(response.data, expected);
     });
+
+    it("Test for writing voting transactions block", async () => {
+        const url = URI(stoa_private_addr).directory("block_externalized").toString();
+
+        await client.post(url, { block: sample_data5 });
+
+        await delay(200);
+
+        //  Verifies that all sent blocks are wrote
+        const uri = URI(stoa_addr).directory("/block_height");
+        const response = await client.get(uri.toString());
+
+        assert.strictEqual(response.status, 200);
+        assert.strictEqual(response.data, "5");
+    });
+
+    it("Test for getValidatorByBlock() method", async () => {
+        let validators = await stoa_server.ledger_storage.getValidatorsByBlock(new Height('5'));
+        let validator_by_block: IValidatorByBlock[] = [];
+        validators.forEach((m) => {
+            validator_by_block.push({
+                block_height: m.block_height,
+                enrolled_height: m.enrolled_height,
+                address: m.block_height,
+                utxo_key: new Hash(m.utxo_key, Endian.Little).toString(),
+                signed: m.signed,
+                slashed: m.slashed,
+            })
+        });
+        let expected =
+            [
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0xbc953e1953dbbbbae165552c000e99f189df7f3ad2a5c644d2bfcd088cfe47964a17b0ed5c8b174f75aafe284cdaf203b6c970dbb6ca9f72bea6d4b03066a37f',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0x076b50dcc436000112a7723363810f331fb7b7ee786de3ee96c4a79bba8b508bc9c299ca3aa205ed6d0ac317f46613185027007c922381067bc5b90afd82eae0',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0x5f00c49527b3c277920feab20483a430090e9f02d4a221321602bf06a43e6d86c3f5d229446586ef73b1e7bfd447d4ec3f3b811e254b164bd5b8f4030b5f4570',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0x03afc40708de7f303ba77c22839bc96a2c2d8dd190263801419012b2eecd72aecbb12c8954acda1abfaaa2b4f257feda02a87c4ca370dc0e1ebd7f9793c3ba00',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0xca0673a903980915644c236fa1e15ea3215b9a3a9b6048360e0c61e99254185c2e1c4bd429d37ba6935f84b8bd26f58396b8e4952350965cece616b6f1b535d9',
+                    signed: 1,
+                    slashed: 0
+                },
+                {
+                    block_height: 5,
+                    enrolled_height: 0,
+                    address: 5,
+                    utxo_key: '0x7396fb808d729e18dd614eff98c484631f7400b1aebc8c6ebcb68df1732bb1d43cb80e9bd82336709dc3c26e64a3ecc281c26d5b87f1210f12f5e07325dbbc6f',
+                    signed: 1,
+                    slashed: 0
+                }
+            ];
+        assert.deepStrictEqual(validator_by_block, expected)
+    })
+
+    it("Test for Voting Start Trigger", async () => {
+        let result = await stoa_server.ledger_storage.getProposalByStatus(ProposalStatus.VOTING);
+        let data: IProposal[] = [];
+        result.forEach((m) => {
+            data.push({
+                proposal_id: m.proposal_id,
+                app_name: m.app_name,
+                block_height: m.block_height,
+                proposal_type: ProposalType.Fund,
+                proposal_title: m.proposal_title,
+                vote_start_height: m.vote_start_height,
+                vote_end_height: m.vote_end_height,
+                doc_hash: new Hash(m.doc_hash, Endian.Little).toString(),
+                fund_amount: m.fund_amount,
+                proposal_fee: m.proposal_fee,
+                vote_fee: m.vote_fee,
+                proposal_fee_tx_hash: new Hash(m.proposal_fee_tx_hash, Endian.Little).toString(),
+                proposer_address: m.proposer_address,
+                proposal_fee_address: m.proposer_address,
+                proposal_status: m.proposal_status,
+                proposal_result: m.proposal_result,
+                data_collection_status: m.data_collection_status
+            });
+            assert.strictEqual(data[0].proposal_status, 'Voting');
+        })
+    });
+
+
 });
