@@ -2527,6 +2527,11 @@ export class LedgerStorage extends Storages {
                         }
                     }
                 } catch (err) {
+                    logger.error("Failed to put proposal's result:" + err, {
+                        operation: Operation.proposal_result_computation,
+                        height: HeightManager.height.toString(),
+                        success: false,
+                    });
                     reject(err);
                     return;
                 }
