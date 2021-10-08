@@ -54,7 +54,8 @@ import {
     ValidatorData,
     IPendingProposal,
     IProposalAPI,
-    IProposalList
+    IProposalList,
+    IVotingDetails
 } from "./Types";
 
 import bodyParser from "body-parser";
@@ -275,6 +276,8 @@ class Stoa extends WebService {
         this.app.get("/search/hash/:hash", isBlackList, this.searchHash.bind(this));
         this.app.get("/proposals/", isBlackList, this.getProposals.bind(this));
         this.app.get("/proposal/:proposal_id", isBlackList, this.getProposalById.bind(this));
+        this.app.get("/proposal/voting_details/:proposal_id", isBlackList, this.getVotingDetails.bind(this));
+
 
         // It operates on a private port
         this.private_app.post("/block_externalized", this.postBlock.bind(this));
@@ -2760,6 +2763,44 @@ class Stoa extends WebService {
                 res.status(500).send("Failed to data lookup");
             });
     }
+
+    /**
+     * GET /voting_details/
+     * Called when a request is received through the `/voting_details/` handler
+     * The parameter `hash` is the hash of  transaction
+     * Returns list of proposal voting details
+     */
+    public async getVotingDetails(req: express.Request, res: express.Response) {
+        const pagination: IPagination = await this.paginate(req, res);
+        const proposal_id = req.params.proposal_id.toString();
+        this.ledger_storage
+            .getVotingDetails(proposal_id, pagination.pageSize, pagination.page)
+            .then((data: any[]) => {
+                const proposal_votingDetails: IVotingDetails[] = [];
+                for (const row of data) {
+                    proposal_votingDetails.push({
+                        address: row.voter_address.toString(),
+                        sequence: row.sequence,
+                        hash: new Hash(row.tx_hash, Endian.Little),
+                        ballot_answer: ConvertTypes.ballotAddressToString(row.ballot_answer),
+                        voting_time: row.voting_time,
+                        voter_utxo_key: new Hash(row.utxo_key, Endian.Little).toString(),
+                        full_count: row.full_count,
+                    });
+                }
+                return res.status(200).send(JSON.stringify(proposal_votingDetails));
+            })
+            .catch((err) => {
+                logger.error("Failed to hash search data lookup to the DB: " + err, {
+                    operation: Operation.db,
+                    height: HeightManager.height.toString(),
+                    status: Status.Error,
+                    responseTime: Number(moment().utc().unix() * 1000),
+                });
+                res.status(500).send("Failed to data lookup");
+            });
+    }
+
 
     /**
      * Get the maximum number of blocks that can be recovered at one time
