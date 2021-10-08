@@ -1271,6 +1271,25 @@ describe("Test of boascan - Proposal & Vote ", () => {
             assert.strictEqual(data[0].proposal_status, 'Counting votes');
         })
     });
+
+    it("Test for path /voting_details/", async () => {
+        const uri = URI(stoa_addr)
+            .directory("proposal/voting_details")
+            .filename("469008972006");
+
+        const response = await client.get(uri.toString());
+        const expected = [
+            {
+                address: "boa1xzval2a3cdxv28n6slr62wlczslk3juvk7cu05qt3z55ty2rlfqfc6egsh2",
+                hash: "0x9ae101d4ff95c9e765145be22adec7fd0af2bc2302d4fcd65be0add852a8e6317a572cca4af247a2943e50c303e048dea380b1220e8011d59a807c80d27c4b20",
+                sequence: 106,
+                voter_utxo_key: "0xd58cc81e7d669a40875413e4974927d4694d6b59f5bceda20e84bcf2133c9ebff95f62c7a62ac65e879c3a475abdd56d2130e50eb767ab4c53cdd54a14b5e712",
+                voting_time: 1632975428,
+                full_count: 1,
+            },
+        ];
+        assert.deepStrictEqual(response.data, expected);
+    });
     it("Test for putProposalResult", async () => {
         //put block to reach Voting_end_height + 7
         const url = URI(stoa_private_addr).directory("block_externalized").toString();

@@ -552,6 +552,16 @@ export enum DisplayTxType {
 }
 
 /**
+ * Define the type of ballot answer to be displayed in proposal voting details
+ */
+export enum BallotAnswer {
+    Yes = 0,
+    No = 1,
+    Blank = 2,
+    Reject = 9,
+}
+
+/**
  * Class that converts various enum values into strings
  */
 export class ConvertTypes {
@@ -568,7 +578,9 @@ export class ConvertTypes {
         if (type < ConvertTypes.tx_types.length) return ConvertTypes.tx_types[type];
         else return "";
     }
-
+    public static ballotAddressToString(type: number): string {
+        return BallotAnswer[type];
+    }
     public static toDisplayTxType(type: string): DisplayTxType {
         return ConvertTypes.display_tx_type.findIndex((m) => m === type.trim().toLowerCase());
     }
@@ -1246,6 +1258,47 @@ export interface IValidator {
      */
     preimage?: IPreimage;
 }
+
+/**
+ * The Interface for a Proposal's Voting Details
+ */
+export interface IVotingDetails {
+    /**
+     * The voter utxo key 
+     */
+    voter_utxo_key: string;
+
+    /**
+     * The voter address 
+     */
+    address: string;
+
+    /**
+     * The ballot sequence 
+     */
+    sequence: number;
+
+    /**
+     * The transaction hash 
+     */
+    hash: Hash;
+
+    /**
+     * The ballot answer 
+     */
+    ballot_answer: string;
+
+    /**
+     * The voting time 
+     */
+    voting_time: number;
+
+    /**
+     * The count of records 
+     */
+    full_count: number;
+}
+
 
 /**
  * The interface of the Ballot data
