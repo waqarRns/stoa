@@ -542,6 +542,16 @@ export interface ITxStatus {
 }
 
 /**
+ * Define the types of ballot anwser 
+ */
+export enum BallotAnswer {
+    Yes = 0,
+    No = 1,
+    Blank = 2,
+    Reject = 9,
+}
+
+/**
  * Define the types of transactions to be displayed in various applications
  */
 export enum DisplayTxType {
@@ -575,6 +585,10 @@ export class ConvertTypes {
     public static ProposalTypetoString(type: ProposalType): string {
         if (type < ConvertTypes.proposal_types.length) return ConvertTypes.proposal_types[type];
         else return "";
+    }
+
+    public static ballotAddressToString(type: number): string {
+        return BallotAnswer[type];
     }
 }
 
@@ -1245,6 +1259,46 @@ export interface IValidator {
      * preimage of validator
      */
     preimage?: IPreimage;
+}
+
+/**
+ * The interface of the Ballot API data
+ */
+export interface IBallotAPI {
+    /**
+     * proposal id
+     */
+    proposal_id: string;
+
+    /**
+     * The transasaction hash
+     */
+    tx_hash: string;
+
+    /**
+     * The sequence
+     */
+    sequence: number;
+
+    /**
+     * Proposal type
+     */
+    proposal_type: string;
+
+    /**
+     * Proposal title
+     */
+    proposal_title: string;
+
+    /**
+     * Total record count
+     */
+    full_count: number;
+
+    /**
+     * The ballot anwer
+     */
+    ballot_answer?: string;
 }
 
 /**

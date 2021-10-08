@@ -54,7 +54,8 @@ import {
     ValidatorData,
     IPendingProposal,
     IProposalAPI,
-    IProposalList
+    IProposalList,
+    IBallotAPI
 } from "./Types";
 
 import bodyParser from "body-parser";
@@ -275,6 +276,7 @@ class Stoa extends WebService {
         this.app.get("/search/hash/:hash", isBlackList, this.searchHash.bind(this));
         this.app.get("/proposals/", isBlackList, this.getProposals.bind(this));
         this.app.get("/proposal/:proposal_id", isBlackList, this.getProposalById.bind(this));
+        this.app.get("/validator/ballot/:address", isBlackList, this.getValidatorBallots.bind(this));
 
         // It operates on a private port
         this.private_app.post("/block_externalized", this.postBlock.bind(this));
@@ -2567,6 +2569,51 @@ class Stoa extends WebService {
                         urls: data.url
                     }
                     return res.status(200).send(JSON.stringify(proposal));
+                }
+            })
+            .catch((err) => {
+                logger.error("Failed to data lookup to the DB: " + err, {
+                    operation: Operation.db,
+                    height: HeightManager.height.toString(),
+                    status: Status.Error,
+                    responseTime: Number(moment().utc().unix() * 1000),
+                });
+                return res.status(500).send("Failed to data lookup");
+            });
+    }
+
+    /* Get validator ballots
+     * @returns Returns BOA Holder of the ledger.
+     */
+    public async getValidatorBallots(req: express.Request, res: express.Response) {
+        const address = String(req.params.address);
+        let validatorAddress: PublicKey;
+        try {
+            validatorAddress = new PublicKey(address);
+        } catch (error) {
+            res.status(400).send(`Invalid value for parameter 'address': ${address}`);
+            return;
+        }
+        const pagination: IPagination = await this.paginate(req, res);
+        this.ledger_storage
+            .getValidatorBallots(address, pagination.pageSize, pagination.page)
+            .then((data: any[]) => {
+                if (data.length === 0) {
+                    return res.status(204).send(`The data does not exist.`);
+                } else {
+                    const ballots: IBallotAPI[] = [];
+                    for (const row of data) {
+                        ballots.push({
+                            proposal_id: row.proposal_id,
+                            tx_hash: new Hash(row.tx_hash, Endian.Little).toString(),
+                            sequence: row.sequence,
+                            proposal_type: ConvertTypes.ProposalTypetoString(row.proposal_type),
+                            proposal_title: row.proposal_title,
+                            ballot_answer: ConvertTypes.ballotAddressToString(row.ballot_answer),
+                            full_count: row.full_count
+                        });
+                    }
+                    return res.status(200).send(JSON.stringify(ballots));
                 }
             })
             .catch((err) => {
