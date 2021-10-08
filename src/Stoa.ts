@@ -70,7 +70,8 @@ import {
     IUnspentTxOutput,
     IValidatorReward,
     ValidatorData,
-    IVotingDetails
+    IVotingDetails,
+    IBallotAPI
 } from "./Types";
 
 class Stoa extends WebService {
@@ -284,7 +285,7 @@ class Stoa extends WebService {
         this.app.get("/proposal/:proposal_id", isBlackList, this.getProposalById.bind(this));
         this.app.get("/validator/reward/:address", isBlackList, this.getValidatorReward.bind(this));
         this.app.get("/proposal/voting_details/:proposal_id", isBlackList, this.getVotingDetails.bind(this));
-
+        this.app.get("/validator/ballot/:address", isBlackList, this.getValidatorBallots.bind(this));
 
         // It operates on a private port
         this.private_app.post("/block_externalized", this.postBlock.bind(this));
@@ -2785,12 +2786,11 @@ class Stoa extends WebService {
             });
     }
 
-    /* Get validator reward
-     * @returns Returns reward of the validators.
+    /* Get validator ballots
+     * @returns Returns BOA Holder of the ledger.
      */
-    public async getValidatorReward(req: express.Request, res: express.Response) {
+    public async getValidatorBallots(req: express.Request, res: express.Response) {
         const address = String(req.params.address);
-
         let validatorAddress: PublicKey;
         try {
             validatorAddress = new PublicKey(address);
@@ -2800,23 +2800,24 @@ class Stoa extends WebService {
         }
         const pagination: IPagination = await this.paginate(req, res);
         this.ledger_storage
-            .getValidatorReward(address, pagination.pageSize, pagination.page)
+            .getValidatorBallots(address, pagination.pageSize, pagination.page)
             .then((data: any[]) => {
                 if (data.length === 0) {
                     return res.status(204).send(`The data does not exist.`);
                 } else {
-                    let rewards: IValidatorReward[] = [];
+                    const ballots: IBallotAPI[] = [];
                     for (const row of data) {
-                        rewards.push({
-                            block_height: row.block_height,
-                            steaking_amount: row.stake_amount ? row.stake_amount : 0,
-                            block_reward: row.total_reward,
-                            block_fee: row.total_fee,
-                            validator_reward: row.validator_reward,
-                            total_count: row.full_count,
+                        ballots.push({
+                            proposal_id: row.proposal_id,
+                            tx_hash: new Hash(row.tx_hash, Endian.Little).toString(),
+                            sequence: row.sequence,
+                            proposal_type: ConvertTypes.ProposalTypetoString(row.proposal_type),
+                            proposal_title: row.proposal_title,
+                            ballot_answer: ConvertTypes.ballotAddressToString(row.ballot_answer),
+                            full_count: row.full_count
                         });
                     }
-                    return res.status(200).send(JSON.stringify(rewards));
+                    return res.status(200).send(JSON.stringify(ballots));
                 }
             })
             .catch((err) => {

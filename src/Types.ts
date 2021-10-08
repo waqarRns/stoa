@@ -814,6 +814,16 @@ export interface ITxStatus {
 }
 
 /**
+ * Define the types of ballot anwser 
+ */
+export enum BallotAnswer {
+    Yes = 0,
+    No = 1,
+    Blank = 2,
+    Reject = 9,
+}
+
+/**
  * Define the types of transactions to be displayed in various applications
  */
 export enum DisplayTxType {
@@ -821,16 +831,6 @@ export enum DisplayTxType {
     Outbound = 1,
     Freeze = 2,
     Payload = 3,
-}
-
-/**
- * Define the type of ballot answer to be displayed in proposal voting details
- */
-export enum BallotAnswer {
-    Yes = 0,
-    No = 1,
-    Blank = 2,
-    Reject = 9,
 }
 
 /**
@@ -850,15 +850,16 @@ export class ConvertTypes {
         if (type < ConvertTypes.tx_types.length) return ConvertTypes.tx_types[type];
         else return "";
     }
-    public static ballotAddressToString(type: number): string {
-        return BallotAnswer[type];
-    }
     public static toDisplayTxType(type: string): DisplayTxType {
         return ConvertTypes.display_tx_type.findIndex((m) => m === type.trim().toLowerCase());
     }
     public static ProposalTypetoString(type: ProposalType): string {
         if (type < ConvertTypes.proposal_types.length) return ConvertTypes.proposal_types[type];
         else return "";
+    }
+
+    public static ballotAddressToString(type: number): string {
+        return BallotAnswer[type];
     }
 }
 
@@ -1571,45 +1572,44 @@ export interface IValidator {
 }
 
 /**
- * The Interface for a Proposal's Voting Details
+ * The interface of the Ballot API data
  */
-export interface IVotingDetails {
+export interface IBallotAPI {
     /**
-     * The voter utxo key 
+     * proposal id
      */
-    voter_utxo_key: string;
+    proposal_id: string;
 
     /**
-     * The voter address 
+     * The transasaction hash
      */
-    address: string;
+    tx_hash: string;
 
     /**
-     * The ballot sequence 
+     * The sequence
      */
     sequence: number;
 
     /**
-     * The transaction hash 
+     * Proposal type
      */
-    hash: Hash;
+    proposal_type: string;
 
     /**
-     * The ballot answer 
+     * Proposal title
      */
-    ballot_answer: string;
+    proposal_title: string;
 
     /**
-     * The voting time 
-     */
-    voting_time: number;
-
-    /**
-     * The count of records 
+     * Total record count
      */
     full_count: number;
-}
 
+    /**
+     * The ballot anwer
+     */
+    ballot_answer?: string;
+}
 
 /**
  * The interface of the Ballot data
@@ -1788,6 +1788,46 @@ export interface IProposal {
      * The proposal result
      */
     proposal_result: string;
+}
+
+/**
+ * The Interface for a Proposal's Voting Details
+ */
+export interface IVotingDetails {
+    /**
+     * The voter utxo key
+     */
+    voter_utxo_key: string;
+
+    /**
+     * The voter address
+     */
+    address: string;
+
+    /**
+     * The ballot sequence
+     */
+    sequence: number;
+
+    /**
+     * The transaction hash
+     */
+    hash: Hash;
+
+    /**
+     * The ballot answer
+     */
+    ballot_answer: string;
+
+    /**
+     * The voting time
+     */
+    voting_time: number;
+
+    /**
+     * The count of records
+     */
+    full_count: number;
 }
 
 /**

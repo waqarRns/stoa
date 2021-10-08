@@ -4197,6 +4197,33 @@ export class LedgerStorage extends Storages {
     }
 
     /**
+     * Get Validator ballots.
+     * @param address Address of the validator
+     * @param limit Maximum record count that can be obtained from one query
+     * @param page The number on the page, this value begins with 1
+     * @returns returns the Promise with requested data
+     * and if an error occurs the .catch is called with an error.
+     */
+    public getValidatorBallots(address: string, limit: number, page: number): Promise<any> {
+        const sql = `
+                SELECT 
+                    B.proposal_id,
+                    B.tx_hash,
+                    B.sequence,
+                    P.proposal_type,
+                    P.proposal_title,
+                    B.ballot_answer,
+                    count(*) OVER() AS full_count
+                FROM ballots B 
+                INNER JOIN proposal P
+                ON (B.proposal_id = P.proposal_id)
+                WHERE B.voter_address = ?
+                ORDER BY B.block_height DESC
+                LIMIT ? OFFSET ?`;
+        return this.query(sql, [address, limit, limit * (page - 1)]);
+    }
+
+    /**
      * Get Pending proposals list
      * @returns returns the Promise with requested data
      * and if an error occurs the .catch is called with an error.
