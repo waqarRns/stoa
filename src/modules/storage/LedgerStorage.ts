@@ -3781,6 +3781,26 @@ export class LedgerStorage extends Storages {
     }
 
     /**
+     * Gets block height and merkle root
+     * @param address The address of the validator
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the records
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public getValidatorUpTime(address: string): Promise<any[]> {
+        const sql = `
+                SELECT 
+                count(signed) as uptime
+                from validator_by_block
+                where address = ? AND signed = 1
+                ORDER BY block_height DESC
+                LIMIT 100
+                `;
+
+        return this.query(sql, [address]);
+    }
+
+    /**
      *  Get the Latest Blocks
      * @param limit Maximum record count that can be obtained from one query
      * @param page The number on the page, this value begins with 1
