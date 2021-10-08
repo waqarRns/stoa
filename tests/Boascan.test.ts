@@ -950,4 +950,15 @@ describe("Test of Stoa API Server", () => {
         ];
         assert.deepStrictEqual(response.data, expected);
     });
+
+    it("Test for path /validator/uptime/:address", async () => {
+        const uri = URI(stoa_addr)
+            .directory("/validator/uptime/")
+            .filename(
+                "boa1xpvald2ydpxzl9aat978kv78y5g24jxy46mcnl7munf4jyhd0zjrc5x62kn"
+            );
+        const response = await client.get(uri.toString());
+        const expected = 17;
+        assert.strictEqual(response.data, expected);
+    });
 });
