@@ -4499,6 +4499,34 @@ export class LedgerStorage extends Storages {
         return this.query(sql, [status]);
     }
 
+
+    /**
+     * Get proposal's voting details
+     * @returns returns the Promise with requested data
+     * and if an error occurs the .catch is called with an error.
+     */
+    public getVotingDetails(proposal_id: string, limit: number, page: number): Promise<any[]> {
+        const sql = `
+            SELECT
+	            T1.voter_address,
+                T1.sequence,
+                T1.tx_hash,
+                T1.ballot_answer,
+                T1.voting_time,
+                T2.utxo_key,
+                count(*) OVER() as full_count
+            FROM
+                ballots T1
+                INNER JOIN tx_outputs T2
+                ON (T1.tx_hash = T2.tx_hash)
+
+            WHERE T1.proposal_id = ?
+            LIMIT ? OFFSET ? `;
+
+        return this.query(sql, [proposal_id, limit, limit * (page - 1)]);
+    }
+
+
     /**
      * This method fetch the validators by block height
      * @param height The block height
