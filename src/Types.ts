@@ -1123,7 +1123,7 @@ export interface IValidatorReward {
     /**
      * Total record count
      */
-    total_count: number;
+    full_count: number;
 }
 
 /**

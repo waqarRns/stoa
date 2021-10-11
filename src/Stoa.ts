@@ -2815,7 +2815,7 @@ class Stoa extends WebService {
                             sequence: row.sequence,
                             proposal_type: ConvertTypes.ProposalTypetoString(row.proposal_type),
                             proposal_title: row.proposal_title,
-                            ballot_answer: ConvertTypes.ballotAddressToString(row.ballot_answer),
+                            ballot_answer: row.ballot_answer ? ConvertTypes.ballotAddressToString(row.ballot_answer) : "",
                             full_count: row.full_count
                         });
                     }
@@ -2895,7 +2895,7 @@ class Stoa extends WebService {
                             block_reward: row.total_reward,
                             block_fee: row.total_fee,
                             validator_reward: row.validator_reward,
-                            total_count: row.full_count
+                            full_count: row.full_count
                         });
                     }
                     return res.status(200).send(JSON.stringify(rewards));
@@ -3119,7 +3119,7 @@ class Stoa extends WebService {
                         address: row.voter_address.toString(),
                         sequence: row.sequence,
                         hash: new Hash(row.tx_hash, Endian.Little),
-                        ballot_answer: ConvertTypes.ballotAddressToString(row.ballot_answer),
+                        ballot_answer: row.ballot_answer ? ConvertTypes.ballotAddressToString(row.ballot_answer) : "",
                         voting_time: row.voting_time,
                         voter_utxo_key: new Hash(row.utxo_key, Endian.Little).toString(),
                         full_count: row.full_count,
