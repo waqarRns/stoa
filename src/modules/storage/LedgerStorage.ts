@@ -3781,6 +3781,26 @@ export class LedgerStorage extends Storages {
     }
 
     /**
+     * Gets block height and merkle root
+     * @param address The address of the validator
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the records
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public getValidatorUpTime(address: string): Promise<any[]> {
+        const sql = `
+                SELECT 
+                count(signed) as uptime
+                from validator_by_block
+                where address = ? AND signed = 1
+                ORDER BY block_height DESC
+                LIMIT 100
+                `;
+
+        return this.query(sql, [address]);
+    }
+
+    /**
      *  Get the Latest Blocks
      * @param limit Maximum record count that can be obtained from one query
      * @param page The number on the page, this value begins with 1
@@ -4022,6 +4042,33 @@ export class LedgerStorage extends Storages {
             ORDER BY total_balance DESC, address ASC
             LIMIT ? OFFSET ?`;
         return this.query(sql, [limit, limit * (page - 1)]);
+    }
+
+    /**
+     * Get Validator ballots.
+     * @param address Address of the validator
+     * @param limit Maximum record count that can be obtained from one query
+     * @param page The number on the page, this value begins with 1
+     * @returns returns the Promise with requested data
+     * and if an error occurs the .catch is called with an error.
+     */
+    public getValidatorBallots(address: string, limit: number, page: number): Promise<any> {
+        const sql = `
+                SELECT 
+                    B.proposal_id,
+                    B.tx_hash,
+                    B.sequence,
+                    P.proposal_type,
+                    P.proposal_title,
+                    B.ballot_answer,
+                    count(*) OVER() AS full_count
+                FROM ballots B 
+                INNER JOIN proposal P
+                ON (B.proposal_id = P.proposal_id)
+                WHERE B.voter_address = ?
+                ORDER BY B.block_height DESC
+                LIMIT ? OFFSET ?`;
+        return this.query(sql, [address, limit, limit * (page - 1)]);
     }
 
     /**

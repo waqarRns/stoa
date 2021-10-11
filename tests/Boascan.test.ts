@@ -1329,4 +1329,33 @@ describe("Test of boascan - Proposal & Vote ", () => {
             assert.strictEqual(data[0].proposal_status, 'Closed');
         })
     });
+
+    it("Test for /validator/ballot/:address", async () => {
+        const uri = URI(stoa_addr)
+            .directory("/validator/ballot")
+            .filename("boa1xzval2a3cdxv28n6slr62wlczslk3juvk7cu05qt3z55ty2rlfqfc6egsh2");
+        const response = await client.get(uri.toString());
+        const expected = [
+            {
+                proposal_id: '469008972006',
+                tx_hash: '0x9ae101d4ff95c9e765145be22adec7fd0af2bc2302d4fcd65be0add852a8e6317a572cca4af247a2943e50c303e048dea380b1220e8011d59a807c80d27c4b20',
+                sequence: 106,
+                proposal_type: 'Fund',
+                proposal_title: 'Title',
+                full_count: 1
+            }
+        ];
+        assert.deepStrictEqual(response.data, expected);
+    });
+
+    it("Test for path /validator/uptime/:address", async () => {
+        const uri = URI(stoa_addr)
+            .directory("/validator/uptime/")
+            .filename(
+                "boa1xpvald2ydpxzl9aat978kv78y5g24jxy46mcnl7munf4jyhd0zjrc5x62kn"
+            );
+        const response = await client.get(uri.toString());
+        const expected = 17;
+        assert.strictEqual(response.data, expected);
+    });
 });
