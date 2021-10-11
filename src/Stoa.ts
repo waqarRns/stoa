@@ -286,7 +286,7 @@ class Stoa extends WebService {
         this.app.get("/validator/reward/:address", isBlackList, this.getValidatorReward.bind(this));
         this.app.get("/proposal/voting_details/:proposal_id", isBlackList, this.getVotingDetails.bind(this));
         this.app.get("/validator/ballot/:address", isBlackList, this.getValidatorBallots.bind(this));
-        this.app.get("/validator/uptime/:address", isBlackList, this.getValidatorUptime.bind(this));
+        // this.app.get("/validator/uptime/:address", isBlackList, this.getValidatorUptime.bind(this));
 
         // It operates on a private port
         this.private_app.post("/block_externalized", this.postBlock.bind(this));
@@ -2832,27 +2832,72 @@ class Stoa extends WebService {
             });
     }
 
-    /* Get validator uptime
-     * @returns Returns validator uptime of the ledger.
-     */
-    public async getValidatorUptime(req: express.Request, res: express.Response) {
+    // /* Get validator uptime
+    //  * @returns Returns validator uptime of the ledger.
+    //  */
+    // public async getValidatorUptime(req: express.Request, res: express.Response) {
+    //     const address = String(req.params.address);
+
+    //     let holderAddress: PublicKey;
+    //     try {
+    //         holderAddress = new PublicKey(address);
+    //     } catch (error) {
+    //         res.status(400).send(`Invalid value for parameter 'address': ${address}`);
+    //         return;
+    //     }
+    //     this.ledger_storage
+    //         .getValidatorUpTime(address)
+    //         .then((data: any[]) => {
+    //             if (data.length === 0) {
+    //                 return res.status(204).send(`The data does not exist.`);
+    //             } else {
+    //                 let uptime = data[0].uptime
+    //                 return res.status(200).send(JSON.stringify(uptime));
+    //             }
+    //         })
+    //         .catch((err) => {
+    //             logger.error("Failed to data lookup to the DB: " + err, {
+    //                 operation: Operation.db,
+    //                 height: HeightManager.height.toString(),
+    //                 status: Status.Error,
+    //                 responseTime: Number(moment().utc().unix() * 1000),
+    //             });
+    //             return res.status(500).send("Failed to data lookup");
+    //         });
+    // }
+
+    /* Get validator reward
+         * @returns Returns reward of the validators.
+         */
+    public async getValidatorReward(req: express.Request, res: express.Response) {
         const address = String(req.params.address);
 
-        let holderAddress: PublicKey;
+        let validatorAddress: PublicKey;
         try {
-            holderAddress = new PublicKey(address);
+            validatorAddress = new PublicKey(address);
         } catch (error) {
             res.status(400).send(`Invalid value for parameter 'address': ${address}`);
             return;
         }
+        const pagination: IPagination = await this.paginate(req, res);
         this.ledger_storage
-            .getValidatorUpTime(address)
+            .getValidatorReward(address, pagination.pageSize, pagination.page)
             .then((data: any[]) => {
                 if (data.length === 0) {
                     return res.status(204).send(`The data does not exist.`);
                 } else {
-                    let uptime = data[0].uptime
-                    return res.status(200).send(JSON.stringify(uptime));
+                    let rewards: IValidatorReward[] = []
+                    for (const row of data) {
+                        rewards.push({
+                            block_height: row.block_height,
+                            steaking_amount: row.stake_amount ? row.stake_amount : 0,
+                            block_reward: row.total_reward,
+                            block_fee: row.total_fee,
+                            validator_reward: row.validator_reward,
+                            total_count: row.full_count
+                        });
+                    }
+                    return res.status(200).send(JSON.stringify(rewards));
                 }
             })
             .catch((err) => {
@@ -2865,7 +2910,6 @@ class Stoa extends WebService {
                 return res.status(500).send("Failed to data lookup");
             });
     }
-
 
     /**
      * GET /average_fee_chart
