@@ -287,6 +287,7 @@ class Stoa extends WebService {
         this.app.get("/proposal/voting_details/:proposal_id", isBlackList, this.getVotingDetails.bind(this));
         this.app.get("/validator/ballot/:address", isBlackList, this.getValidatorBallots.bind(this));
         // this.app.get("/validator/uptime/:address", isBlackList, this.getValidatorUptime.bind(this));
+        this.app.get("/validator/missed_blocks/:address", isBlackList, this.getValidatorMissedBlocks.bind(this));
 
         // It operates on a private port
         this.private_app.post("/block_externalized", this.postBlock.bind(this));
@@ -3137,6 +3138,29 @@ class Stoa extends WebService {
             });
     }
 
+    /**
+     * GET /validator missed blocks/
+     * Called when a request is received through the `validator/missed_blocks/` handler
+     * The parameter `address` is the address of  validator
+     * Returns list of validator missed blocks
+     */
+    public async getValidatorMissedBlocks(req: express.Request, res: express.Response) {
+        const address = req.params.address.toString();
+        this.ledger_storage
+            .getValidatorMissedBlocks(address)
+            .then((data: any[]) => {
+                return res.status(200).send(JSON.stringify(data));
+            })
+            .catch((err) => {
+                logger.error("Failed to hash search data lookup to the DB: " + err, {
+                    operation: Operation.db,
+                    height: HeightManager.height.toString(),
+                    status: Status.Error,
+                    responseTime: Number(moment().utc().unix() * 1000),
+                });
+                res.status(500).send("Failed to data lookup");
+            });
+    }
 
     /**
      * Get the maximum number of blocks that can be recovered at one time

@@ -951,14 +951,25 @@ describe("Test of Stoa API Server", () => {
         assert.deepStrictEqual(response.data, expected);
     });
 
-    it("Test for path /validator/uptime/:address", async () => {
+    it("Test for path /validator's missed blocks/", async () => {
         const uri = URI(stoa_addr)
-            .directory("/validator/uptime/")
-            .filename(
-                "boa1xpvald2ydpxzl9aat978kv78y5g24jxy46mcnl7munf4jyhd0zjrc5x62kn"
-            );
+            .directory("/validator/missed_blocks")
+            .filename("boa1xpvald2ydpxzl9aat978kv78y5g24jxy46mcnl7munf4jyhd0zjrc5x62kn");
+
         const response = await client.get(uri.toString());
-        const expected = 17;
-        assert.strictEqual(response.data, expected);
+        const expected = [
+            { block_height: 10, signed: 1 },
+            { block_height: 9, signed: 1 },
+            { block_height: 8, signed: 1 },
+            { block_height: 7, signed: 1 },
+            { block_height: 6, signed: 1 },
+            { block_height: 5, signed: 1 },
+            { block_height: 4, signed: 1 },
+            { block_height: 3, signed: 1 },
+            { block_height: 2, signed: 1 },
+            { block_height: 1, signed: 1 },
+        ];
+        assert.deepStrictEqual(response.data, expected);
     });
+
 });

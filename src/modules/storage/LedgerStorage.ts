@@ -4584,6 +4584,24 @@ export class LedgerStorage extends Storages {
         return this.query(sql, [proposal_id, limit, limit * (page - 1)]);
     }
 
+    /**
+     * Get Validators's latest blocks
+     * @returns returns the Promise with requested data
+     * and if an error occurs the .catch is called with an error.
+     */
+    public getValidatorMissedBlocks(address: string): Promise<any[]> {
+        const sql = `
+            SELECT
+                block_height,
+                signed
+            FROM
+                validator_by_block
+            WHERE address = ?
+            ORDER BY block_height DESC
+            LIMIT 100`;
+
+        return this.query(sql, [address]);
+    }
 
     /**
      * This method fetch the validators by block height
