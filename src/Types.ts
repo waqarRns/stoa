@@ -402,6 +402,11 @@ export interface IBlockOverview {
      * Agora version
      */
     version: string;
+
+    /**
+     * Transaction volume
+     */
+    tx_volume: number;
 }
 
 /**
@@ -427,6 +432,11 @@ export interface IBlockEnrollment {
      * Enroll signature
      */
     enroll_sig: string;
+
+    /**
+     * Validator cycle length
+     */
+    cycle_length: number;
 
     /**
      * total number of records

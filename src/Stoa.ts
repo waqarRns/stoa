@@ -1271,6 +1271,7 @@ class Stoa extends WebService {
                         total_reward: data[0].total_reward,
                         total_fee: data[0].total_fee,
                         total_size: data[0].total_size,
+                        tx_volume: 6974
                     };
                     res.status(200).send(JSON.stringify(overview));
                 }
@@ -1337,6 +1338,7 @@ class Stoa extends WebService {
                             utxo: new Hash(row.utxo_key, Endian.Little).toString(),
                             enroll_sig: new Hash(row.enroll_sig, Endian.Little).toString(),
                             commitment: new Hash(row.commitment, Endian.Little).toString(),
+                            cycle_length: this.validator_cycle,
                             full_count: row.full_count,
                         });
                     }
@@ -1404,12 +1406,12 @@ class Stoa extends WebService {
                             height: JSBI.BigInt(row.block_height).toString(),
                             tx_hash: new Hash(row.tx_hash, Endian.Little).toString(),
                             amount: row.amount,
-                            type: row.type,
+                            type: ConvertTypes.TxTypeToString(row.receiver[0].type),
                             fee: row.tx_fee,
                             size: row.tx_size,
                             time: row.time_stamp,
-                            sender_address: row.sender_address,
-                            receiver: row.receiver,
+                            sender_address: row.sender_address ? row.sender_address : [],
+                            receiver: row.receiver ? row.receiver : [],
                             full_count: row.full_count,
                         });
                     }
