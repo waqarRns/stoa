@@ -375,8 +375,7 @@ class Stoa extends WebService {
             });
         const pagination: IPagination = await this.paginate(req, res);
         this.ledger_storage
-            .getValidatorsAPI(height, null, pagination.pageSize,
-                pagination.page)
+            .getValidatorsAPI(height, null)
             .then((rows: any[]) => {
                 // Nothing found
                 if (!rows.length) {
