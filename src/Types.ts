@@ -319,6 +319,11 @@ export interface IBOAStats {
     total_reward: number;
 
     /**
+     * Boa price
+     */
+    price: number;
+
+    /**
      * Total no. of active validators
      */
     active_validators: number;
@@ -567,6 +572,11 @@ export interface ITxOverview {
      * Transaction fee
      */
     fee: string;
+
+    /**
+     * Payload fee
+     */
+    data_fee: string;
 }
 
 /**

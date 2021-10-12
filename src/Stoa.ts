@@ -1084,6 +1084,7 @@ class Stoa extends WebService {
                     senders: [],
                     receivers: [],
                     fee: JSBI.add(JSBI.BigInt(data.tx[0].tx_fee), JSBI.BigInt(data.tx[0].payload_fee)).toString(),
+                    data_fee: data.tx[0].payload_fee
                 };
 
                 for (const elem of data.senders)
@@ -1450,6 +1451,7 @@ class Stoa extends WebService {
                         total_reward: data[0].total_reward,
                         circulating_supply: 5283535,
                         active_validators: 155055,
+                        price: 5465
                     };
                     return res.status(200).send(JSON.stringify(boaStats));
                 }
@@ -2407,6 +2409,7 @@ class Stoa extends WebService {
                             total_reward: data[0].total_reward,
                             circulating_supply: 5283535,
                             active_validators: 155055,
+                            price: 155055,
                         };
                         this.socket.io.emit(events.server.latestStats, boaStats);
                         logger.info(`Emitted Updated BOA stats`, {
