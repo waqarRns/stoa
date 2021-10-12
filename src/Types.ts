@@ -39,12 +39,35 @@ export class ValidatorData implements IValidator {
     enrolled_at: Height;
     stake: string;
     preimage: IPreimage;
+    agora_version?: string;
+    freezing?: number;
+    block_height?: number;
+    slashing?: number;
+    validator?: number;
+    full_count?: number;
 
-    constructor(address: string, enrolled_at: Height, stake: string, preimage: IPreimage) {
+    constructor(
+        address: string,
+        enrolled_at: Height,
+        stake: string,
+        preimage: IPreimage,
+        agora_version?: string,
+        freezing?: number,
+        block_height?: number,
+        slashing?: number,
+        validator?: number,
+        full_count?: number
+    ) {
         this.address = address;
         this.enrolled_at = enrolled_at;
         this.stake = stake;
         this.preimage = preimage;
+        this.agora_version = agora_version;
+        this.freezing = freezing;
+        this.block_height = block_height;
+        this.slashing = slashing;
+        this.validator = validator;
+        this.full_count = full_count;
     }
 }
 

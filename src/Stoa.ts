@@ -400,7 +400,13 @@ class Stoa extends WebService {
                         row.address,
                         new Height(JSBI.BigInt(row.enrolled_at)),
                         new Hash(row.stake, Endian.Little).toString(),
-                        preimage
+                        preimage,
+                        "v0.x.x",
+                        row.amount,
+                        row.slash_height,
+                        row.slashed,
+                        row.slash_height ? 0 : 1,
+                        row.full_count
                     );
                     out_put.push(validator);
                 }
