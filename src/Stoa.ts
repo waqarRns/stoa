@@ -2786,7 +2786,18 @@ class Stoa extends WebService {
                         proposer_address: data.proposalData[0].proposer_address,
                         proposal_fee_address: data.proposalData[0].proposal_fee_address,
                         urls: data.url,
-                    };
+                        total_validators: data.total_validators,
+                        total_yes_voted: data.yes,
+                        total_no_voted: data.no,
+                        total_abstain_voted: data.abstain,
+                        total_reject_voted: data.reject,
+                        total_not_voted: data.not_voted,
+                        yes_percentage: data.yes_percent,
+                        no_percentage: data.no_percent,
+                        abstain_percentage: data.abstain_percent,
+                        reject_percentage: data.reject_percent,
+                        not_voted_percentage: data.not_voted_percent,
+                    }
                     return res.status(200).send(JSON.stringify(proposal));
                 }
             })

@@ -1435,6 +1435,62 @@ export interface IProposalAPI {
      * Attachment URLs
      */
     urls: string[];
+
+    /**
+     * Total Validators Count
+     */
+    total_validators: number;
+
+    /**
+     * Voted Yes Count
+     */
+    total_yes_voted: number;
+
+    /**
+     * Voted No Count
+     */
+    total_no_voted: number;
+
+    /**
+     * Voted Abstain Count
+     */
+    total_abstain_voted: number;
+
+    /**
+     * Voted Reject Count
+     */
+    total_reject_voted: number;
+
+    /**
+     * Voted Not Voted Count
+     */
+    total_not_voted: number;
+
+    /**
+     * Voted yes Percentage
+     */
+    yes_percentage: number;
+
+    /**
+     * Voted No Percentage
+     */
+    no_percentage: number;
+
+    /**
+     * Voted Abstain Percentage
+     */
+    abstain_percentage: number;
+
+    /**
+     * Voted Reject Percentage
+     */
+    reject_percentage: number;
+
+    /**
+     * Voted Not Voted Percentage
+     */
+    not_voted_percentage: number;
+
 }
 
 /**
