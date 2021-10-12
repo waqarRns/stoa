@@ -2282,7 +2282,6 @@ export class LedgerStorage extends Storages {
      */
     public getValidatorsAPI(height: Height | null, address: string | null, conn: mysql.PoolConnection | undefined = undefined): Promise<any[]> {
         let cur_height: string;
-
         if (height !== null) cur_height = height.toString();
         else cur_height = `(SELECT MAX(height) as height FROM blocks)`;
 

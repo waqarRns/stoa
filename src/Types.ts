@@ -281,6 +281,12 @@ export interface ITxHistoryItem {
      * Transaction size
      */
     tx_size: number;
+
+    /**
+     * total number of records
+     */
+    full_count: number;
+
 }
 
 /**
