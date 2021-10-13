@@ -1317,9 +1317,45 @@ export interface IProposalList {
     voting_end_date: number;
 
     /**
+     * Proposal result
+     */
+    proposal_result: string;
+
+    /**
      * Full count
      */
     full_count: number;
+
+    /**
+     * Total Validators Count
+     */
+    total_validators: number;
+
+    /**
+     * Voted yes Percentage
+     */
+    yes_percentage: number;
+
+    /**
+     * Voted No Percentage
+     */
+    no_percentage: number;
+
+    /**
+     * Voted Abstain Percentage
+     */
+    abstain_percentage: number;
+
+    /**
+     * Voted Not Voted Percentage
+     */
+    voted_percentage: number;
+
+    /**
+     * Voted Not Voted Percentage
+     */
+    not_voted_percentage: number;
+
 }
 
 /**

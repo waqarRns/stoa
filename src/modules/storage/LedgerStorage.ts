@@ -4365,6 +4365,7 @@ export class LedgerStorage extends Storages {
                 SELECT 
                     P.proposal_id,
                     P.proposal_title,
+                    P.proposal_result,
                     P.proposal_type,
                     P.fund_amount,
                     P.vote_start_height,
@@ -4380,7 +4381,60 @@ export class LedgerStorage extends Storages {
                     ON(P.proposal_id = M.proposal_id)
                     LIMIT ? OFFSET ?
             `;
-        return this.query(sql, [limit, limit * (page - 1)]);
+        const validators = `
+                    SELECT count(DISTINCT(address)) as total_validators
+                    FROM   validators
+        `;
+
+        const votes = `
+                    SELECT ballot_answer,
+                            count(*) as count,
+                            proposal_id
+                    FROM   ballots
+                    WHERE  proposal_id=?
+                    GROUP BY ballot_answer
+                    ORDER BY ballot_answer ASC
+                    `;
+        const result: any = {};
+        let totalValidators: any;
+        return new Promise<any>(async (resolve, reject) => {
+            this.query(sql, [limit, limit * (page - 1)])
+                .then((rows: any) => {
+                    result.proposalData = rows;
+                    return this.query(validators, []);
+                })
+                .then(async (rows: any[]) => {
+                    totalValidators = rows[0].total_validators;
+                    const maxLength = result.proposalData.length <= 10 ? result.proposalData.length : 10;
+
+                    for (let i = 0; i < maxLength; i++) {
+                        let yesCount = 0;
+                        let noCount = 0;
+                        let abstainCount = 0;
+
+                        const data = await this.query(votes, [result.proposalData[i].proposal_id.toString()]);
+                        for (const row of data) {
+                            row.ballot_answer === 0 ? (yesCount = row.count) : 0;
+                            row.ballot_answer === 1 ? (noCount = row.count) : 0;
+                            row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
+                        }
+
+                        const votedCount = yesCount + noCount + abstainCount;
+                        const notVotedCount = totalValidators - votedCount;
+
+                        result.proposalData[i].total_validators = totalValidators;
+                        result.proposalData[i].yes_percent = (yesCount / totalValidators) * 100;
+                        result.proposalData[i].no_percent = (noCount / totalValidators) * 100;
+                        result.proposalData[i].abstain_percent = abstainCount / totalValidators * 100;
+                        result.proposalData[i].voted_percent = votedCount / totalValidators * 100;
+                        result.proposalData[i].not_voted_percent = notVotedCount / totalValidators * 100;
+
+                    }
+                    resolve(result);
+                })
+                .catch(reject);
+        });
+        // return this.query(sql, [limit, limit * (page - 1)]);
     }
 
     /**
@@ -4456,26 +4510,22 @@ export class LedgerStorage extends Storages {
                     let yesCount = 0;
                     let noCount = 0;
                     let abstainCount = 0;
-                    let rejectCount = 0;
 
                     for (const row of rows) {
                         row.ballot_answer === 0 ? (yesCount = row.count) : 0;
                         row.ballot_answer === 1 ? (noCount = row.count) : 0;
                         row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
-                        row.ballot_answer === 9 ? (rejectCount = row.count) : 0;
                     }
-                    const notVotedCount = totalValidators - yesCount - noCount - abstainCount - rejectCount;
+                    const notVotedCount = totalValidators - yesCount - noCount - abstainCount;
 
                     result.yes = yesCount;
                     result.no = noCount;
                     result.abstain = abstainCount;
-                    result.reject = rejectCount;
                     result.not_voted = notVotedCount;
 
                     result.yes_percent = (yesCount / totalValidators) * 100;
                     result.no_percent = (noCount / totalValidators) * 100;
                     result.abstain_percent = abstainCount / totalValidators * 100;
-                    result.reject_percent = rejectCount / totalValidators * 100;
                     result.not_voted_percent = notVotedCount / totalValidators * 100;
                     resolve(result);
                 })

@@ -2713,12 +2713,12 @@ class Stoa extends WebService {
         const pagination: IPagination = await this.paginate(req, res);
         this.ledger_storage
             .getProposals(pagination.pageSize, pagination.page)
-            .then((data: any[]) => {
+            .then((data: any) => {
                 if (data.length === 0) {
                     return res.status(204).send(`The data does not exist.`);
                 } else {
                     let proposals: IProposalList[] = [];
-                    for (const row of data) {
+                    for (const row of data.proposalData) {
                         proposals.push({
                             proposal_id: row.proposal_id,
                             proposal_title: row.proposal_title,
@@ -2732,7 +2732,14 @@ class Stoa extends WebService {
                             voting_start_date: row.voting_start_date,
                             voting_end_date: row.voting_end_date,
                             full_count: row.full_count,
-                        });
+                            total_validators: row.total_validators,
+                            yes_percentage: row.yes_percent,
+                            no_percentage: row.no_percent,
+                            abstain_percentage: row.abstain_percent,
+                            not_voted_percentage: row.not_voted_percent,
+                            voted_percentage: row.voted_percent,
+                            proposal_result: row.proposal_result,
+                        })
                     }
                     return res.status(200).send(JSON.stringify(proposals));
                 }
