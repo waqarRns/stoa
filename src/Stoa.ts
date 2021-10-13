@@ -999,14 +999,14 @@ class Stoa extends WebService {
                 const items: ITxHistoryItem[] = [];
                 for (const row of rows) {
                     items.push({
-                        display_tx_type: ConvertTypes.DisplayTxTypeToString(row.display_tx_type),
+                        display_tx_type: lodash.capitalize(ConvertTypes.DisplayTxTypeToString(row.display_tx_type)),
                         address: row.address,
                         peer: row.peer,
                         peer_count: row.peer_count,
                         height: JSBI.BigInt(row.height).toString(),
                         time: row.block_time,
                         tx_hash: new Hash(row.tx_hash, Endian.Little).toString(),
-                        tx_type: ConvertTypes.TxTypeToString(row.type),
+                        tx_type: _.capitalize(ConvertTypes.TxTypeToString(row.type)),
                         amount: JSBI.BigInt(row.amount).toString(),
                         unlock_height: JSBI.BigInt(row.unlock_height).toString(),
                         unlock_time: row.unlock_time,
