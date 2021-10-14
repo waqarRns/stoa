@@ -1406,7 +1406,7 @@ class Stoa extends WebService {
                             height: JSBI.BigInt(row.block_height).toString(),
                             tx_hash: new Hash(row.tx_hash, Endian.Little).toString(),
                             amount: row.amount,
-                            type: ConvertTypes.TxTypeToString(row.receiver[0].type),
+                            type: _.capitalize(ConvertTypes.TxTypeToString(row.receiver[0].type)),
                             fee: row.tx_fee,
                             size: row.tx_size,
                             time: row.time_stamp,
