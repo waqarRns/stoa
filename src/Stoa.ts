@@ -2804,6 +2804,8 @@ class Stoa extends WebService {
                         abstain_percentage: data.abstain_percent,
                         reject_percentage: data.reject_percent,
                         not_voted_percentage: data.not_voted_percent,
+                        voted_percentage: data.voted_percent,
+                        total_voted: data.voted
                     }
                     return res.status(200).send(JSON.stringify(proposal));
                 }

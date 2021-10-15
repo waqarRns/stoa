@@ -4418,10 +4418,8 @@ export class LedgerStorage extends Storages {
                             row.ballot_answer === 1 ? (noCount = row.count) : 0;
                             row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
                         }
-
                         const votedCount = yesCount + noCount + abstainCount;
                         const notVotedCount = totalValidators - votedCount;
-
                         result.proposalData[i].total_validators = totalValidators;
                         result.proposalData[i].yes_percent = (yesCount / totalValidators) * 100;
                         result.proposalData[i].no_percent = (noCount / totalValidators) * 100;
@@ -4517,16 +4515,17 @@ export class LedgerStorage extends Storages {
                         row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
                     }
                     const notVotedCount = totalValidators - yesCount - noCount - abstainCount;
-
+                    const votedCount = yesCount + noCount + abstainCount;
                     result.yes = yesCount;
                     result.no = noCount;
                     result.abstain = abstainCount;
                     result.not_voted = notVotedCount;
-
+                    result.voted = votedCount;
                     result.yes_percent = (yesCount / totalValidators) * 100;
                     result.no_percent = (noCount / totalValidators) * 100;
                     result.abstain_percent = abstainCount / totalValidators * 100;
                     result.not_voted_percent = notVotedCount / totalValidators * 100;
+                    result.voted_percent = votedCount / totalValidators * 100;
                     resolve(result);
                 })
                 .catch(reject);
