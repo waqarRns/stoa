@@ -4355,11 +4355,22 @@ export class LedgerStorage extends Storages {
 
     /**
      * Get block validators.
-     * @param block_height height of the block
+     * @param value height of the block
      * @returns returns the Promise with requested data
      * and if an error occurs the .catch is called with an error.
      */
-    public getBlockValidators(block_height: number, limit: number, page: number): Promise<any> {
+    public async getBlockValidators(value: number | Buffer, field: string, limit: number, page: number): Promise<any> {
+        let block_height: number | Buffer = 0;
+        if (field == "hash") {
+            const block_sql = `SELECT height
+                                FROM blocks where hash = ?`
+            await this.query(block_sql, [value])
+                .then((rows: any[]) => {
+                    block_height = rows[0].height;
+                });
+        } else {
+            block_height = value;
+        }
         const sql = `        
             SELECT validators.address,
                 enrollments.enrolled_at,

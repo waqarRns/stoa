@@ -2721,19 +2721,36 @@ class Stoa extends WebService {
      * Returns a set of Validators based on the block height.
      */
     public async getBlockValidators(req: express.Request, res: express.Response) {
-        if (req.query.height !== undefined && !Utils.isPositiveInteger(req.query.height.toString())) {
-            res.status(400).send(`Invalid value for parameter 'height': ${req.query.height.toString()}`);
+        let field: string;
+        let value: number | Buffer;
+        // Validating Parameter - height
+        if (req.query.height !== undefined && Utils.isPositiveInteger(req.query.height.toString())) {
+            field = "height";
+            value = Number(req.query.height);
+        }
+        // Validating Parameter - hash
+        else if (req.query.hash !== undefined) {
+            field = "hash";
+            try {
+                const req_hash: string = String(req.query.hash);
+                value = new Hash(req_hash).toBinary(Endian.Little);
+            } catch (error) {
+                res.status(400).send(`Invalid value for parameter 'hash': ${req.query.hash}`);
+                return;
+            }
+        } else {
+            res.status(400).send(
+                `Invalid value for parameter 'height': ${req.query.height} and 'hash': ${req.query.hash}`
+            );
             return;
         }
-        const height = Number(req.query.height);
         const pagination: IPagination = await this.paginate(req, res);
         this.ledger_storage
-            .getBlockValidators(height, pagination.pageSize, pagination.page)
+            .getBlockValidators(value, field, pagination.pageSize, pagination.page)
             .then((rows: any[]) => {
                 // Nothing found
                 if (!rows.length) {
-                    if (height !== null) res.status(400).send("No validator exists for block height.");
-                    else res.status(503).send("Stoa is currently unavailable.");
+                    res.status(204).send(`The data does not exist. 'height': (${value})`);
                     return;
                 }
                 const out_put: IBlockValidator[] = [];
