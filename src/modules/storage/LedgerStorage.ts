@@ -4361,6 +4361,7 @@ export class LedgerStorage extends Storages {
      */
     public async getBlockValidators(value: number | Buffer, field: string, limit: number, page: number): Promise<any> {
         let block_height: number | Buffer = 0;
+
         if (field == "hash") {
             const block_sql = `SELECT height
                                 FROM blocks where hash = ?`
@@ -4379,7 +4380,7 @@ export class LedgerStorage extends Storages {
                 enrollments.avail_height,
                 validators.preimage_height,
                 validators.preimage_hash,
-                B.block_height as height,
+                ${block_height} as height,
                 B.slashed,
                 B.signed,
                 count(*) OVER() AS full_count
@@ -4406,6 +4407,7 @@ export class LedgerStorage extends Storages {
             on(B.address = validators.address and
             B.enrolled_height = validators.enrolled_at)
             where B.block_height = ?
+            ORDER BY enrollments.enrolled_at ASC, enrollments.utxo_key ASC
             LIMIT ? OFFSET ?;`;
         return this.query(sql, [this.validator_cycle, block_height, limit, limit * (page - 1)]);
     }
