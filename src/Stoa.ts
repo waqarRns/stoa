@@ -71,7 +71,8 @@ import {
     IValidatorReward,
     ValidatorData,
     IVotingDetails,
-    IBallotAPI
+    IBallotAPI,
+    IBlockValidator
 } from "./Types";
 
 class Stoa extends WebService {
@@ -288,6 +289,7 @@ class Stoa extends WebService {
         this.app.get("/validator/ballot/:address", isBlackList, this.getValidatorBallots.bind(this));
         // this.app.get("/validator/uptime/:address", isBlackList, this.getValidatorUptime.bind(this));
         this.app.get("/validator/missed_blocks/:address", isBlackList, this.getValidatorMissedBlocks.bind(this));
+        this.app.get("/block/validators", isBlackList, this.getBlockValidators.bind(this));
 
         // It operates on a private port
         this.private_app.post("/block_externalized", this.postBlock.bind(this));
@@ -478,7 +480,14 @@ class Stoa extends WebService {
                         row.address,
                         new Height(JSBI.BigInt(row.enrolled_at)),
                         new Hash(row.stake, Endian.Little).toString(),
-                        preimage
+                        preimage,
+                        "v0.x.x",
+                        row.amount,
+                        row.slash_height,
+                        row.slashed,
+                        row.slash_height ? 0 : 1,
+                        row.full_count,
+                        'Mining pool',
                     );
                     out_put.push(validator);
                 }
@@ -2703,6 +2712,78 @@ class Stoa extends WebService {
                     responseTime: Number(moment().utc().unix() * 1000),
                 });
                 return res.status(500).send("Failed to data lookup");
+            });
+    }
+
+
+    /**
+     * GET block validators
+     * Returns a set of Validators based on the block height.
+     */
+    public async getBlockValidators(req: express.Request, res: express.Response) {
+        if (req.query.height !== undefined && !Utils.isPositiveInteger(req.query.height.toString())) {
+            res.status(400).send(`Invalid value for parameter 'height': ${req.query.height.toString()}`);
+            return;
+        }
+        const height = Number(req.query.height);
+        const pagination: IPagination = await this.paginate(req, res);
+        this.ledger_storage
+            .getBlockValidators(height, pagination.pageSize, pagination.page)
+            .then((rows: any[]) => {
+                // Nothing found
+                if (!rows.length) {
+                    if (height !== null) res.status(400).send("No validator exists for block height.");
+                    else res.status(503).send("Stoa is currently unavailable.");
+                    return;
+                }
+                const out_put: IBlockValidator[] = [];
+                for (const row of rows) {
+
+                    const preimage_hash: Buffer = row.preimage_hash;
+                    let preimage_height: JSBI = JSBI.BigInt(row.preimage_height);
+                    const target_height: Height = new Height(row.height);
+                    let result_preimage_hash = new Hash(Buffer.alloc(Hash.Width));
+                    let preimage_height_str: string;
+
+                    // Hashing preImage
+                    if (JSBI.greaterThanOrEqual(JSBI.BigInt(preimage_height), target_height.value)) {
+                        result_preimage_hash.fromBinary(preimage_hash, Endian.Little);
+                        const count = JSBI.toNumber(JSBI.subtract(JSBI.BigInt(preimage_height), target_height.value));
+                        for (let i = 0; i < count; i++) {
+                            result_preimage_hash = hash(result_preimage_hash.data);
+                            preimage_height = JSBI.subtract(preimage_height, JSBI.BigInt(1));
+                        }
+                        preimage_height_str = preimage_height.toString();
+                    } else {
+                        preimage_height_str = "";
+                        result_preimage_hash = new Hash(Buffer.alloc(Hash.Width));
+                    }
+
+                    const preimage: IPreimage = {
+                        height: preimage_height_str,
+                        hash: result_preimage_hash.toString(),
+                    };
+
+                    const validator: IBlockValidator = {
+                        address: row.address,
+                        utxo_key: new Hash(row.stake, Endian.Little).toString(),
+                        pre_image: preimage,
+                        slashed: row.slashed,
+                        block_signed: row.signed,
+                        full_count: row.full_count
+                    };
+                    out_put.push(validator);
+                }
+                res.status(200).send(JSON.stringify(out_put));
+            })
+            .catch((err) => {
+                logger.error("Failed to data lookup to the DB: " + err, {
+                    operation: Operation.db,
+                    height: HeightManager.height.toString(),
+                    status: Status.Error,
+                    responseTime: Number(moment().utc().unix() * 1000),
+                });
+                res.status(500).send("Failed to data lookup");
             });
     }
 

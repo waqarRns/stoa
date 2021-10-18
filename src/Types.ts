@@ -45,6 +45,7 @@ export class ValidatorData implements IValidator {
     slashing?: number;
     validator?: number;
     full_count?: number;
+    node_name?: string;
 
     constructor(
         address: string,
@@ -56,7 +57,9 @@ export class ValidatorData implements IValidator {
         block_height?: number,
         slashing?: number,
         validator?: number,
-        full_count?: number
+        full_count?: number,
+        node_name?: string
+
     ) {
         this.address = address;
         this.enrolled_at = enrolled_at;
@@ -67,6 +70,7 @@ export class ValidatorData implements IValidator {
         this.block_height = block_height;
         this.slashing = slashing;
         this.validator = validator;
+        this.node_name = node_name;
         this.full_count = full_count;
     }
 }
@@ -1356,6 +1360,42 @@ export interface IProposalList {
      */
     not_voted_percentage: number;
 
+}
+
+/**
+ * The interface of the block validators
+ */
+export interface IBlockValidator {
+
+    /**
+     * UTXO key of the validator
+     */
+    utxo_key: string;
+
+    /**
+     * Address of the validator
+     */
+    address: string;
+
+    /**
+     * Pre image
+     */
+    pre_image: IPreimage;
+
+    /**
+     * Slashed 
+     */
+    slashed: string;
+
+    /**
+     * Block signed 
+     */
+    block_signed: string;
+
+    /**
+     * Full count
+     */
+    full_count: number;
 }
 
 /**
