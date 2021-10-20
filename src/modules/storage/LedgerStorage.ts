@@ -43,6 +43,7 @@ import {
     hashMulti,
     Encrypt
 } from "boa-sdk-ts";
+import fs from "fs";
 import moment from "moment";
 import * as mysql from "mysql2";
 import { IAccountInformation, IMarketCap, IMetaData, IValidator, IProposalAttachment, IPreimage, IValidatorByBlock, IProposal, IVotingResult, IBallot } from "../../Types";
@@ -599,6 +600,8 @@ export class LedgerStorage extends Storages {
                 await this.begin(conn);
                 await this.putProposalResult(block, conn)
                 await this.putProposals(block, conn);
+                await this.putAccountData(block, conn);
+                await this.putFeeData(block, conn);
                 await this.commit(conn);
                 return resolve();
             } catch (err) {
@@ -2027,6 +2030,61 @@ export class LedgerStorage extends Storages {
             })();
         });
     }
+
+
+    /**
+     * Saving Average Fees
+     * @param block: The instance of the `Block`
+     * @param conn Use this if it are providing a db connection.
+     */
+    public putFeeData(block: Block, conn?: mysql.PoolConnection) {
+        return new Promise<void>(async (resolve, reject) => {
+            if (block.header.height.toString() === "1") {
+                this.insertIntoFee(conn)
+            }
+            resolve();
+        });
+    }
+
+    /**
+ * Gets a transaction data payload
+ * @param tx_hash The hash of the transaction to get
+ * @returns Returns the Promise. If it is finished successfully the `.then`
+ * of the returned Promise is called with the records
+ * and if an error occurs the `.catch` is called with an error.
+ */
+    public insertIntoFee(conn?: mysql.PoolConnection): Promise<any[]> {
+        const sql = fs.readFileSync("src/modules/common/fee_chart.sql", { encoding: "utf-8" })
+        return this.query(sql, [], conn);
+    }
+
+
+    /**
+     * Saving Average Fees
+     * @param block: The instance of the `Block`
+     * @param conn Use this if it are providing a db connection.
+     */
+    public putAccountData(block: Block, conn?: mysql.PoolConnection) {
+        return new Promise<void>(async (resolve, reject) => {
+            if (block.header.height.toString() === "1") {
+                this.insertIntoAccountHistory(conn)
+            }
+            resolve();
+        });
+    }
+
+    /**
+     * Gets a transaction data payload
+     * @param tx_hash The hash of the transaction to get
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the records
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public insertIntoAccountHistory(conn?: mysql.PoolConnection): Promise<any[]> {
+        const sql = fs.readFileSync("src/modules/common/chart.sql", { encoding: "utf-8" })
+        return this.query(sql, [], conn);
+    }
+
 
     /**
      * Put a transaction on transactionPool
