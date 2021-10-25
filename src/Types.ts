@@ -867,6 +867,15 @@ export interface ITxStatus {
 }
 
 /**
+ * Define the types of currency for the coin market
+ */
+export enum CurrencyType {
+    USD = "usd",
+    KRW = "krw",
+    CNY = "cny",
+}
+
+/**
  * Define the types of ballot anwser 
  */
 export enum BallotAnswer {
@@ -1097,6 +1106,11 @@ export interface IMarketCap {
      * Last updated time
      */
     last_updated_at: number;
+
+    /**
+     * Currency
+     */
+    currnecy: string;
 }
 
 /**

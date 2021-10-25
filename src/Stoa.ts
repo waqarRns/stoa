@@ -2025,8 +2025,9 @@ class Stoa extends WebService {
      * @returns Returns Coin market cap.
      */
     private async getCoinMarketCap(req: express.Request, res: express.Response) {
+        const currency = String(req.query.currency);
         this.ledger_storage
-            .getCoinMarketcap()
+            .getCoinMarketcap(currency)
             .then((rows: any) => {
                 if (rows[0]) {
                     return res.status(200).send(rows[0]);
@@ -2352,7 +2353,7 @@ class Stoa extends WebService {
         const to = await Time.msToTime(Date.now());
         const from = await JSBI.subtract(JSBI.BigInt(to.seconds), JSBI.BigInt(60 * 60 * 24));
         const num = Number(from.toString());
-
+        const currency = String(req.query.currency);
         const dt = new Date(to.seconds * 1000);
         const df = new Date(num * 1000);
 
@@ -2364,7 +2365,7 @@ class Stoa extends WebService {
         });
 
         this.ledger_storage
-            .getCoinMarketChart(Number(from.toString()), to.seconds)
+            .getCoinMarketChart(Number(from.toString()), to.seconds, currency)
             .then(async (rows: any[]) => {
                 if (rows.length === 0) {
                     res.status(204).send("The data does not exist");

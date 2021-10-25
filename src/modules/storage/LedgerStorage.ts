@@ -340,11 +340,12 @@ export class LedgerStorage extends Storages {
 
         CREATE TABLE IF NOT EXISTS marketcap (
             last_updated_at INTEGER NOT NULL,
+            currency        TEXT NOT NULL,
             price           DECIMAL(14,6)  NOT NULL,
             market_cap      BIGINT(20) UNSIGNED NOT NULL,
             vol_24h         BIGINT(20) UNSIGNED NOT NULL,
             change_24h      BIGINT(20),
-            PRIMARY KEY (last_updated_at)
+            PRIMARY KEY (last_updated_at,currency(10))
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
         CREATE TABLE IF NOT EXISTS fee_mean_disparity (
@@ -1592,11 +1593,11 @@ export class LedgerStorage extends Storages {
      */
     public storeCoinMarket(data: IMarketCap): Promise<any> {
         return new Promise<void>((resolve, reject) => {
-            const sql = `INSERT IGNORE INTO marketcap (last_updated_at, price, market_cap, change_24h, vol_24h)
-            VALUES (?, ?, ?, ?, ?)
+            const sql = `INSERT IGNORE INTO marketcap (last_updated_at, currency, price, market_cap, change_24h, vol_24h)
+            VALUES (?, ?, ?, ?, ?, ?)
             `;
 
-            this.query(sql, [data.last_updated_at, data.price, data.market_cap, data.change_24h, data.vol_24h])
+            this.query(sql, [data.last_updated_at, data.currnecy, data.price, data.market_cap, data.change_24h, data.vol_24h])
                 .then((result: any) => {
                     resolve(result);
                 })
@@ -4198,10 +4199,13 @@ export class LedgerStorage extends Storages {
      * of the returned Promise is called with the records
      * and if an error occurs the `.catch` is called with an error.
      */
-    public getCoinMarketcap(): Promise<any[]> {
-        const sql = `SELECT * FROM marketcap WHERE last_updated_at = (SELECT MAX(last_updated_at) as time FROM marketcap)`;
+    public getCoinMarketcap(currency: string): Promise<any[]> {
+        const sql = `SELECT * FROM marketcap 
+        WHERE last_updated_at = (SELECT MAX(last_updated_at) as time FROM marketcap WHERE currency = ?)
+        AND currency = ?
+        `;
 
-        return this.query(sql, []);
+        return this.query(sql, [currency, currency]);
     }
 
     /**
@@ -4210,10 +4214,10 @@ export class LedgerStorage extends Storages {
      * of the returned Promise is called with the records
      * and if an error occurs the `.catch` is called with an error.
      */
-    public getCoinMarketChart(from: number, to: number): Promise<any[]> {
-        const sql = `SELECT * FROM marketcap WHERE last_updated_at BETWEEN ? AND ?`;
+    public getCoinMarketChart(from: number, to: number, currency: string): Promise<any[]> {
+        const sql = `SELECT * FROM marketcap WHERE last_updated_at BETWEEN ? AND ? AND currency = ?`;
 
-        return this.query(sql, [from, to]);
+        return this.query(sql, [from, to, currency]);
     }
 
     /**
