@@ -985,9 +985,9 @@ export interface IBlock {
     merkle_root: string;
 
     /**
-     * validators of block
+     * Signed validator count of the block
      */
-    validators: string;
+    validators: number;
 
     /**
      * signature of block
@@ -1295,6 +1295,11 @@ export interface IProposalList {
     proposal_type: string;
 
     /**
+     * Proposal height
+     */
+    block_height: number;
+
+    /**
      * Proposal fund amount
      */
     fund_amount: number;
@@ -1430,6 +1435,11 @@ export interface IProposalAPI {
      * Proposal type
      */
     proposal_type: string;
+
+    /**
+     * Proposal height
+     */
+    block_height: number;
 
     /**
      * Proposal fund amount

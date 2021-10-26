@@ -1968,12 +1968,19 @@ class Stoa extends WebService {
             } else {
                 const blocklist: IBlock[] = [];
                 for (const row of data) {
+                    let validator_array = Array.from(row.validators);
+                    let validator_count = 0;
+                    validator_array.map(elem => {
+                        if (elem == 1) {
+                            ++validator_count;
+                        }
+                    });
                     blocklist.push({
                         height: JSBI.BigInt(row.height).toString(),
                         hash: new Hash(row.hash, Endian.Little).toString(),
                         merkle_root: new Hash(row.merkle_root, Endian.Little).toString(),
                         signature: new Hash(row.signature, Endian.Little).toString(),
-                        validators: row.validators.toString(),
+                        validators: validator_count,
                         tx_count: row.tx_count.toString(),
                         enrollment_count: row.enrollment_count.toString(),
                         time_stamp: row.time_stamp,
@@ -2822,6 +2829,7 @@ class Stoa extends WebService {
                             proposal_id: row.proposal_id,
                             proposal_title: row.proposal_title,
                             proposal_type: ConvertTypes.ProposalTypetoString(row.proposal_type),
+                            block_height: row.block_height,
                             fund_amount: row.fund_amount,
                             vote_start_height: row.vote_start_height,
                             vote_end_height: row.vote_end_height,
@@ -2876,6 +2884,7 @@ class Stoa extends WebService {
                         proposal_tx_hash: new Hash(data.proposalData[0].tx_hash, Endian.Little).toString(),
                         fee_tx_hash: new Hash(data.proposalData[0].voting_fee_hash, Endian.Little).toString(),
                         proposer_name: data.proposalData[0].proposer_name,
+                        block_height: data.proposalData[0].block_height,
                         fund_amount: data.proposalData[0].fund_amount,
                         proposal_fee: data.proposalData[0].proposal_fee,
                         proposal_type: ConvertTypes.ProposalTypetoString(data.proposalData[0].proposal_type),
