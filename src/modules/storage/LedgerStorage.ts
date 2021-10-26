@@ -4540,7 +4540,7 @@ export class LedgerStorage extends Storages {
                             row.ballot_answer === 1 ? (noCount = row.count) : 0;
                             row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
                         }
-                        const votedCount = yesCount + noCount + abstainCount;
+                        const votedCount = data[0] ? data[0].count : 0;
                         const notVotedCount = totalValidators - votedCount;
                         result.proposalData[i].total_validators = totalValidators;
                         result.proposalData[i].yes_percent = (yesCount / totalValidators) * 100;
@@ -4637,8 +4637,8 @@ export class LedgerStorage extends Storages {
                         row.ballot_answer === 1 ? (noCount = row.count) : 0;
                         row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
                     }
-                    const notVotedCount = totalValidators - yesCount - noCount - abstainCount;
-                    const votedCount = yesCount + noCount + abstainCount;
+                    const votedCount = rows[0] ? rows[0].count : 0;
+                    const notVotedCount = totalValidators - votedCount;
                     result.yes = yesCount;
                     result.no = noCount;
                     result.abstain = abstainCount;
@@ -4777,6 +4777,38 @@ export class LedgerStorage extends Storages {
 
 
     /**
+     * This method is used to get the ballots of given address.
+     * @param proposal_id The proposal id
+     * @param type The type filter
+     * @param height The height filter
+     * @returns Returns the Promise. If it is finished successfully the `.then`
+     * of the returned Promise is called with the block height
+     * and if an error occurs the `.catch` is called with an error.
+     */
+    public getProposalBallots(proposal_id: string, type?: string, height?: number) {
+        let type_filter = type ? `AND B.ballot_answer = ${type}` : '';
+        let height_filter = height ? `AND B.block_height = ${height}` : '';
+        let sql = `
+                SELECT 
+                   B.proposal_id,         
+                   B.block_height,       
+                   B.app_name,           
+                   B.tx_hash,            
+                   B.voter_address,       
+                   B.sequence,          
+                   B.ballot,             
+                   B.signature,          
+                   B.voting_time,        
+                   B.ballot_answer
+                FROM 
+                    proposal P INNER JOIN ballots B ON(P.proposal_id = B.proposal_id)
+                WHERE 
+                P.proposal_id = ? ${type_filter} ${height_filter}`;
+
+        return this.query(sql, [proposal_id]);
+    }
+
+    /**
      * Get proposal's voting details
      * @returns returns the Promise with requested data
      * and if an error occurs the .catch is called with an error.
@@ -4843,38 +4875,6 @@ export class LedgerStorage extends Storages {
             block_height = ?`;
 
         return this.query(sql, [height.value.toString()]);
-    }
-
-    /**
-     * This method is used to get the ballots of given address.
-     * @param proposal_id The proposal id
-     * @param type The type filter
-     * @param height The height filter
-     * @returns Returns the Promise. If it is finished successfully the `.then`
-     * of the returned Promise is called with the block height
-     * and if an error occurs the `.catch` is called with an error.
-     */
-    public getProposalBallots(proposal_id: string, type?: string, height?: number) {
-        let type_filter = type ? `AND B.ballot_answer = ${type}` : '';
-        let height_filter = height ? `AND B.block_height = ${height}` : '';
-        let sql = `
-                SELECT 
-                   B.proposal_id,         
-                   B.block_height,       
-                   B.app_name,           
-                   B.tx_hash,            
-                   B.voter_address,       
-                   B.sequence,          
-                   B.ballot,             
-                   B.signature,          
-                   B.voting_time,        
-                   B.ballot_answer
-                FROM 
-                    proposal P INNER JOIN ballots B ON(P.proposal_id = B.proposal_id)
-                WHERE 
-                P.proposal_id = ? ${type_filter} ${height_filter}`;
-
-        return this.query(sql, [proposal_id]);
     }
 
     /**
