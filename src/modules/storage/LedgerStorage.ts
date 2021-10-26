@@ -4514,7 +4514,7 @@ export class LedgerStorage extends Storages {
                             proposal_id
                     FROM   ballots
                     WHERE  proposal_id=?
-                    GROUP BY ballot_answer
+                    GROUP BY ballot_answer, voter_address
                     ORDER BY ballot_answer ASC
                     `;
         const result: any = {};
@@ -4540,7 +4540,7 @@ export class LedgerStorage extends Storages {
                             row.ballot_answer === 1 ? (noCount = row.count) : 0;
                             row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
                         }
-                        const votedCount = data[0] ? data[0].count : 0;
+                        const votedCount = data.length;
                         const notVotedCount = totalValidators - votedCount;
                         result.proposalData[i].total_validators = totalValidators;
                         result.proposalData[i].yes_percent = (yesCount / totalValidators) * 100;
@@ -4602,7 +4602,7 @@ export class LedgerStorage extends Storages {
                             count(*) as count
                     FROM   ballots
                     WHERE  proposal_id=?
-                    GROUP BY ballot_answer
+                    GROUP BY ballot_answer, voter_address
                     ORDER BY ballot_answer ASC
                     `;
 
@@ -4637,7 +4637,7 @@ export class LedgerStorage extends Storages {
                         row.ballot_answer === 1 ? (noCount = row.count) : 0;
                         row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
                     }
-                    const votedCount = rows[0] ? rows[0].count : 0;
+                    const votedCount = rows.length;
                     const notVotedCount = totalValidators - votedCount;
                     result.yes = yesCount;
                     result.no = noCount;
