@@ -4508,17 +4508,21 @@ export class LedgerStorage extends Storages {
                     FROM   validators
         `;
 
-        const votes = `
-                    SELECT ballot_answer,
-                            count(*) as count,
-                            proposal_id
-                    FROM   ballots
-                    WHERE  proposal_id=?
-                    GROUP BY ballot_answer, voter_address
-                    ORDER BY ballot_answer ASC
+        const total_votes = `
+                    SELECT 
+                        DISTINCT voter_address
+                    FROM ballots
+                    WHERE  proposal_id = ?
                     `;
+        const vote_answer = `
+                    SELECT ballot_answer
+                    FROM ballots 
+                    WHERE proposal_id = ?
+                    AND voter_address = ?
+                    ORDER BY sequence DESC limit 1`;
         const result: any = {};
         let totalValidators: any;
+        let totalVotes: any;
         return new Promise<any>(async (resolve, reject) => {
             this.query(sql, [limit, limit * (page - 1)])
                 .then((rows: any) => {
@@ -4528,19 +4532,32 @@ export class LedgerStorage extends Storages {
                 .then(async (rows: any[]) => {
                     totalValidators = rows[0].total_validators;
                     const maxLength = result.proposalData.length <= 10 ? result.proposalData.length : 10;
-
                     for (let i = 0; i < maxLength; i++) {
+                        const votes = await this.query(total_votes, [result.proposalData[i].proposal_id]);
                         let yesCount = 0;
                         let noCount = 0;
                         let abstainCount = 0;
+                        for (let k = 0; k < votes.length; k++) {
+                            const ballot_answer = await this.query(vote_answer, [result.proposalData[i].proposal_id, votes[k].voter_address]);
+                            switch (ballot_answer[0].ballot_answer) {
+                                case 0: {
+                                    ++yesCount;
+                                    break
+                                }
+                                case 1: {
+                                    ++noCount;
+                                    break
+                                }
+                                case 2: {
+                                    ++abstainCount
+                                    break
+                                }
+                                default:
+                                    break;
+                            }
 
-                        const data = await this.query(votes, [result.proposalData[i].proposal_id.toString()]);
-                        for (const row of data) {
-                            row.ballot_answer === 0 ? (yesCount = row.count) : 0;
-                            row.ballot_answer === 1 ? (noCount = row.count) : 0;
-                            row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
                         }
-                        const votedCount = data.length;
+                        const votedCount = votes.length;
                         const notVotedCount = totalValidators - votedCount;
                         result.proposalData[i].total_validators = totalValidators;
                         result.proposalData[i].yes_percent = (yesCount / totalValidators) * 100;
@@ -4597,22 +4614,26 @@ export class LedgerStorage extends Storages {
                 FROM proposal_attachments
                 WHERE proposal_id=?`
 
-        const votes = `
-                    SELECT ballot_answer,
-                            count(*) as count
-                    FROM   ballots
-                    WHERE  proposal_id=?
-                    GROUP BY ballot_answer, voter_address
-                    ORDER BY ballot_answer ASC
+        const total_votes = `
+                    SELECT 
+                        DISTINCT voter_address
+                    FROM ballots
+                    WHERE  proposal_id = ?
                     `;
+        const vote_answer = `
+                    SELECT ballot_answer
+                    FROM ballots 
+                    WHERE proposal_id = ?
+                    AND voter_address = ?
+                    ORDER BY sequence DESC limit 1`;
 
         const validators = `
                     SELECT count(DISTINCT(address)) as total_validators
-                    FROM   validators
+                    FROM validators
         `;
         const result: any = {};
         let totalValidators: any;
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<any>(async (resolve, reject) => {
             this.query(sql, [proposal_id.toString()])
                 .then((rows: any) => {
                     result.proposalData = rows;
@@ -4625,17 +4646,30 @@ export class LedgerStorage extends Storages {
                 .then((data: any) => {
                     totalValidators = data[0].total_validators;
                     result.total_validators = totalValidators;
-                    return this.query(votes, [proposal_id.toString()]);
+                    return this.query(total_votes, [proposal_id.toString()]);
                 })
-                .then((rows: any[]) => {
+                .then(async (rows: any[]) => {
                     let yesCount = 0;
                     let noCount = 0;
                     let abstainCount = 0;
-
-                    for (const row of rows) {
-                        row.ballot_answer === 0 ? (yesCount = row.count) : 0;
-                        row.ballot_answer === 1 ? (noCount = row.count) : 0;
-                        row.ballot_answer === 2 ? (abstainCount = row.count) : 0;
+                    for (let i = 0; i < rows.length; i++) {
+                        const ballot_answer = await this.query(vote_answer, [proposal_id.toString(), rows[i].voter_address]);
+                        switch (ballot_answer[0].ballot_answer) {
+                            case 0: {
+                                ++yesCount;
+                                break
+                            }
+                            case 1: {
+                                ++noCount;
+                                break
+                            }
+                            case 2: {
+                                ++abstainCount
+                                break
+                            }
+                            default:
+                                break;
+                        }
                     }
                     const votedCount = rows.length;
                     const notVotedCount = totalValidators - votedCount;
