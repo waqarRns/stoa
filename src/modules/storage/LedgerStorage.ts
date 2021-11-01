@@ -912,8 +912,7 @@ export class LedgerStorage extends Storages {
                 const validators: any[] = await this.getValidatorsAPI(block.header.height, null, conn);
                 for (let idx = 0; idx < block.header.preimages.length; idx++) {
                     try {
-                        if (undefined !== validators[idx] && block.header.preimages[idx] !== new Hash(Buffer.alloc(Hash.Width)))
-                        {
+                        if (undefined !== validators[idx] && block.header.preimages[idx] !== new Hash(Buffer.alloc(Hash.Width))) {
                             await save_preimage(
                                 this,
                                 block.header.height,
@@ -1712,9 +1711,9 @@ export class LedgerStorage extends Storages {
 
                     unlock_height_query = `(
                             SELECT '${JSBI.add(
-                                height.value,
-                                JSBI.BigInt(2016)
-                            ).toString()}' AS unlock_height WHERE EXISTS
+                        height.value,
+                        JSBI.BigInt(2016)
+                    ).toString()}' AS unlock_height WHERE EXISTS
                             (
                                 SELECT
                                     *
@@ -2671,31 +2670,14 @@ export class LedgerStorage extends Storages {
         }
 
         function validatePreImage(validator: any): IPreimage {
-            const preimage_hash: Buffer = validator.preimage_hash;
-            let preimage_height: JSBI = JSBI.BigInt(validator.preimage_height);
-            const target_height: Height = new Height(validator.height);
-            let result_preimage_hash = new Hash(Buffer.alloc(Hash.Width));
-            const avail_height = JSBI.BigInt(validator.avail_height);
-            let preimage_height_str: string;
-
-            // Hashing preImage
-            if (JSBI.greaterThanOrEqual(JSBI.BigInt(preimage_height), target_height.value)) {
-                result_preimage_hash.fromBinary(preimage_hash, Endian.Little);
-                const count = JSBI.toNumber(JSBI.subtract(JSBI.BigInt(preimage_height), target_height.value));
-                for (let i = 0; i < count; i++) {
-                    result_preimage_hash = hash(result_preimage_hash.data);
-                    preimage_height = JSBI.subtract(preimage_height, JSBI.BigInt(1));
-                }
-                preimage_height_str = preimage_height.toString();
-            } else {
-                preimage_height_str = "";
-                result_preimage_hash = new Hash(Buffer.alloc(Hash.Width));
-            }
+            const preimage_hash: string = validator.preimage_hash !== null ? new Hash(validator.preimage_hash, Endian.Little).toString() : "";
+            const preimage_height_str: string = validator.preimage_height !== null ? validator.preimage_height.toString() : "";
 
             const preimage: IPreimage = {
                 height: preimage_height_str,
-                hash: result_preimage_hash.toString(),
+                hash: preimage_hash,
             };
+
             return preimage;
         }
 
@@ -2863,36 +2845,52 @@ export class LedgerStorage extends Storages {
 
         }
 
+        function getBlockPreimages(storage: LedgerStorage, height: Height): Promise<any[]> {
+            let cur_height: string = height.toString();
+
+            let sql = `SELECT 
+                            block_height,
+                            utxo_key, 
+                            preimage_hash,
+                            address
+                        FROM
+                            preimages
+                        WHERE
+                            block_height = ?`;
+
+            return storage.query(sql, [cur_height], conn);
+        }
+
         function getValidatorForCycle(storage: LedgerStorage, height: Height): Promise<any[]> {
             let cur_height: string = height.toString();
 
-            let sql = `SELECT validators.address,
-                enrollments.enrolled_at,
-                enrollments.utxo_key as stake,
-                enrollments.commitment,
-                enrollments.avail_height,
-                ${cur_height} as height,
-                validators.preimage_height,
-                validators.preimage_hash
-            FROM (SELECT MAX(block_height) as enrolled_at,
-                    (CASE WHEN block_height = 0 THEN
-                          block_height
-                    ELSE
-                         block_height + 1
-                    END) as avail_height,
-                    enrollment_index,
-                    utxo_key,
-                    commitment,
-                    enroll_sig
-                FROM enrollments
-                GROUP BY utxo_key, block_height
-                HAVING avail_height <= ${cur_height} AND ${cur_height} <= (avail_height + ?)
-                ) as enrollments
-            LEFT JOIN validators
-                ON enrollments.enrolled_at = validators.enrolled_at
-                AND enrollments.utxo_key = validators.utxo_key
-            WHERE validators.slashed IS NULL
-            ORDER BY enrollments.enrolled_at ASC, enrollments.utxo_key ASC`;
+            let sql = `SELECT V.address,
+                V.enrolled_at,
+                V.address,
+                V.utxo_key,
+                V.utxo_key as stake,
+                V.amount as stake_amount,
+                P.block_height,
+                P.block_height as preimage_height,
+                P.preimage_hash,
+                ` +
+                cur_height +
+                ` as height
+            FROM validators V
+            LEFT OUTER JOIN preimages P
+            ON V.address = P.address
+            AND V.utxo_key = P.utxo_key
+            AND ` +
+                cur_height +
+                ` = P.block_height
+            WHERE 1 = 1
+            AND V.slashed IS NULL
+            AND V.enrolled_at >= (` +
+                cur_height +
+                ` - ?)
+            AND V.enrolled_at < ` +
+                cur_height; `
+            `;
 
             return storage.query(sql, [storage.validator_cycle]);
         }
@@ -2903,18 +2901,23 @@ export class LedgerStorage extends Storages {
                 let unsignedValidators: IValidator[] = [];
                 let slashedValidators: IValidator[] = [];
 
-                let cycleValidators: IValidator[] = await getValidatorForCycle(this, block.header.height);
-                block.header.missing_validators.forEach(async (index) => {
-                    slashedValidators.push(cycleValidators[index]);
-                    await updateValidatorSlashing(this, block.header.height, cycleValidators[index].address, cycleValidators[index].enrolled_at);
+                let cycleValidators: any[] = await getValidatorForCycle(this, block.header.height);
+                let block_preimages: any[] = await getBlockPreimages(this, block.header.height);
+
+                slashedValidators = cycleValidators.filter(v => !block_preimages.some((v1) => v.address === v1.address));
+
+                for (let i = 0; i < slashedValidators.length; i++) {
+                    await updateValidatorSlashing(this, block.header.height, slashedValidators[i].address, slashedValidators[i].enrolled_at);
+                }
+
+                slashedValidators.forEach((e) => {
+                    cycleValidators.splice(cycleValidators.indexOf(e), 1);
                 });
 
                 let bitMask = BitMask.fromString(block.header.validators.toString());
                 for (let i = 0; i < bitMask.length; i++) {
                     bitMask.get(i) ? signedValidators.push(cycleValidators[i]) : unsignedValidators.push(cycleValidators[i]);
                 }
-
-                unsignedValidators = unsignedValidators.filter(e => slashedValidators.indexOf(e) === -1);
 
                 signedValidators.forEach(element => {
                     save_block_validator(this, block.header.height, element, SignStatus.SIGNED, ValidatorStatus.ACTIVE);
