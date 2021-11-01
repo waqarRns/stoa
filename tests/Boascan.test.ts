@@ -117,13 +117,14 @@ describe("Test of Stoa API Server", () => {
         const uri = URI(stoa_addr).directory("/latest-blocks").addSearch("page", "1").addSearch("limit", "10");
 
         const response = await client.get(uri.toString());
+        console.log(response.data);
         const expected = [
             {
                 height: '1',
-                hash: '0x100057b7dfdcee4174231ed110d48e420276745ebfa5c307e28754facbeb4b33267cde253d91da336b1f3a5ad6a0fb6cb514b611b1d70638659becd09780c11d',
+                hash: '0x400467a06c564be843689d17671ffe20b3f87e5163ec7899e2fc1675fa69e450dfb5c3d1dc9fb3f252c8c42db83a9dc1ca20eb36f6b4323a1a63f155ec98dbdc',
                 merkle_root: '0x515a30d31fbd031d63f041b92184f32baf00d08e4120da9299bc336c6f980f2245b11e70bb1dcb7c2279ead9dab1c37b62dee8414083ae8346d166cf033cddfb',
                 signature: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-                validators: 6,
+                validators: 5,
                 tx_count: '8',
                 enrollment_count: '0',
                 time_stamp: 1609459800,
@@ -131,7 +132,7 @@ describe("Test of Stoa API Server", () => {
             },
             {
                 height: '0',
-                hash: '0x891808f2bada31adeab0e312775cef39ba5c301bf6cce97d06b54c626ec2ed53a5475b224f63f779d405f1441d2121e1285f173347e650b65e77d00f344fdaea',
+                hash: '0x3cf900495dbd46d36e6477c042f766a64ee7c4bb6bd5a7be00df3d1ef55293700ddad11462c6b6ccc4b06f54f1b089c8a2a997a67dd065aca4c6453775dcd565',
                 merkle_root: '0x67218493be437c25dc5884abdc8ee40e61f0af79aa9af8ab9bd8b0632eaaca238b4c054f114b046da0d5911b1b205ba540d07c5dc01560beafe564e5f3d101c9',
                 signature: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
                 validators: 0,
@@ -269,19 +270,19 @@ describe("Test of Stoa API Server", () => {
         const response = await client.get(uri.toString());
         const expected = {
             height: '1',
-            total_transactions: 8,
-            hash: '0x100057b7dfdcee4174231ed110d48e420276745ebfa5c307e28754facbeb4b33267cde253d91da336b1f3a5ad6a0fb6cb514b611b1d70638659becd09780c11d',
-            prev_hash: '0x891808f2bada31adeab0e312775cef39ba5c301bf6cce97d06b54c626ec2ed53a5475b224f63f779d405f1441d2121e1285f173347e650b65e77d00f344fdaea',
-            merkle_root: '0x515a30d31fbd031d63f041b92184f32baf00d08e4120da9299bc336c6f980f2245b11e70bb1dcb7c2279ead9dab1c37b62dee8414083ae8346d166cf033cddfb',
+            total_transactions: 1,
+            hash: '0x0a296cbf3851f4989f75faa44f70a8472a016466a42836a9fde6189e3c90787496c56eb8b2e20172829a64f25e398d866a2948708fb69b2ea34933613028a213',
+            prev_hash: '0x3cf900495dbd46d36e6477c042f766a64ee7c4bb6bd5a7be00df3d1ef55293700ddad11462c6b6ccc4b06f54f1b089c8a2a997a67dd065aca4c6453775dcd565',
+            merkle_root: '0x2d1dd1b062d61ddc86f1d695d4d1a9040330717e4d1c4c112e908f34946dd8032dfbca1dd3e207131f65213bbb030a171db902bc8e8b0455012b01cb7627e703',
             signature: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-            random_seed: '0x691775809b9498f45a2c5ef8b8d552e318ebaf0b1b2fb15dcc39e0ec962ae9812d7edffa5f053590a895c9ff72c1b0838ce8f5c709579d4529f9f4caf0fab13d',
+            random_seed: '',
             time: 1609459800,
             version: 'v0.x.x',
-            total_sent: 4880000000000000,
-            total_received: 4879999998096000,
+            total_sent: 1220000000000000,
+            total_received: 1219999900000000,
             total_reward: 0,
-            total_fee: 1904000,
-            total_size: 10120,
+            total_fee: 100000000,
+            total_size: 4819,
             tx_volume: 6974
         }
         assert.deepStrictEqual(response.data, expected);

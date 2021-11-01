@@ -16,6 +16,7 @@ import {
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
+import { load } from "js-yaml";
 import lodash from "lodash";
 import moment from "moment";
 import responseTime from "response-time";
@@ -404,10 +405,10 @@ class Stoa extends WebService {
                         new Hash(row.stake, Endian.Little).toString(),
                         preimage,
                         "v0.x.x",
-                        row.amount,
-                        row.slash_height,
-                        row.slashed,
-                        row.slash_height ? 0 : 1,
+                        row.stake_amount,
+                        row.height,
+                        row.slash_height ? 1 : 0,
+                        row.slashed ? 0 : 1,
                         row.full_count
                     );
                     out_put.push(validator);
@@ -482,10 +483,10 @@ class Stoa extends WebService {
                         new Hash(row.stake, Endian.Little).toString(),
                         preimage,
                         "v0.x.x",
-                        row.amount,
-                        row.slash_height,
-                        row.slashed,
-                        row.slash_height ? 0 : 1,
+                        row.stake_amount,
+                        row.height,
+                        row.slash_height ? 1 : 0,
+                        row.slashed ? 0 : 1,
                         row.full_count,
                         'Mining pool',
                     );
@@ -1015,7 +1016,7 @@ class Stoa extends WebService {
                         height: JSBI.BigInt(row.height).toString(),
                         time: row.block_time,
                         tx_hash: new Hash(row.tx_hash, Endian.Little).toString(),
-                        tx_type: _.capitalize(ConvertTypes.TxTypeToString(row.type)),
+                        tx_type: lodash.capitalize(ConvertTypes.TxTypeToString(row.type)),
                         amount: JSBI.BigInt(row.amount).toString(),
                         unlock_height: JSBI.BigInt(row.unlock_height).toString(),
                         unlock_time: row.unlock_time,
@@ -1415,7 +1416,7 @@ class Stoa extends WebService {
                             height: JSBI.BigInt(row.block_height).toString(),
                             tx_hash: new Hash(row.tx_hash, Endian.Little).toString(),
                             amount: row.amount,
-                            type: _.capitalize(ConvertTypes.TxTypeToString(row.receiver[0].type)),
+                            type: lodash.capitalize(ConvertTypes.TxTypeToString(row.receiver[0].type)),
                             fee: row.tx_fee,
                             size: row.tx_size,
                             time: row.time_stamp,

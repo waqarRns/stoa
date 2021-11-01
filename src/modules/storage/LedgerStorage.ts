@@ -2351,6 +2351,7 @@ export class LedgerStorage extends Storages {
                 V.utxo_key,
                 V.utxo_key as stake,
                 V.amount as stake_amount,
+                V.slash_height as slash_height,
                 P.block_height,
                 P.block_height as preimage_height,
                 P.preimage_hash,
